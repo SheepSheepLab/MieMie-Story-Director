@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "version": "0.1.22",
+  "name": "咩咩故事导演 · 独立测试版 0.1.22",
+  "scriptId": "fc2d2ead-68af-43fc-904d-a72ece07277b",
+  "artifact": "tests/fixtures/0.1.22/script.json",
+  "artifactSha256": "26a00694d6e76d3e240bd2b51909f937f317901efa4804efe30bc3744721c743",
+  "contentSha256": "b34f6142b3a4ea2c32986060f508374f26644415d33b312fba825ec17d25554f",
+  "coreFixtureSha256": "74d9e788064c3191bb23ff10e5480e6bb49c9c64e7e4e3ee81e0cda572379f0d",
+  "retainedSuiteSha256": "d5313a6e6d1871ee8503e1717bf7fc2b9382301ca4f440df23b4016cfd01e4b3",
+  "parts": {
+    "core": {
+      "path": "src/core.js",
+      "sha256": "74d9e788064c3191bb23ff10e5480e6bb49c9c64e7e4e3ee81e0cda572379f0d"
+    },
+    "libraries": {
+      "path": "src/prompt-libraries.js",
+      "sha256": "81fd8381aababe34e61559a1a248975bc531065051b34f3b55ca3fe23a737fd3"
+    },
+    "panel": {
+      "path": "src/ui/panel.html",
+      "sha256": "4e40e1dc2b168ca33047e8e49436580efcecdbee59c6d718a5cb2f419f6e58b4"
+    },
+    "runtime": {
+      "path": "src/host/standalone-runtime.js",
+      "sha256": "1d8d5d370a00425c68fd64dbf5c6516e20daa0ba641b694cc4b4b1cbf693528a"
+    }
+  },
+  "legacyIconSha256": "df3c41918d8a10425d4ecb82d1d11d9680780510891699737f4b4043dc4c49a6",
+  "approvedIconSha256": "a905de0f6ea29bf659b2b6827cb35101f5ea64a5dfdb720b45c5487d1190205e",
+  "authority": "Owner-supplied 0.1.22 JSON; historical tests are assertions, not functional authority.",
+  "goldenSha256": "661a323700da67d2da83839c1f09f0879e36167113beec41a1ae3585c55a2159",
+  "coreScenarios": 38,
+  "runtimeScenarios": 37
+}

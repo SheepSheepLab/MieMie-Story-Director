@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": 1,
+  "id": "miemie.story-director",
+  "name": "咩咩故事导演",
+  "version": "0.2.0",
+  "description": "咩咩故事导演（MieMie Story Director），基于已冻结的 0.1.22 故事规划与主接口交接功能。",
+  "entry": "entry.js",
+  "icon": "assets/icon.png",
+  "contributes": {
+    "launcher": {
+      "title": "咩咩导演",
+      "icon": "🎬"
+    }
+  },
+  "author": "SheepSheep",
+  "repository": "https://github.com/SheepSheepLab/MieMie-Story-Director",
+  "homepage": "https://github.com/SheepSheepLab/MieMie-Story-Director",
+  "license": "GPL-3.0-or-later",
+  "hubApi": {
+    "min": 1,
+    "max": 1
+  }
+}

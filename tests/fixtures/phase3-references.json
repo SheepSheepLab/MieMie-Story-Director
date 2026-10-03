@@ -1,0 +1,23 @@
+{
+  "hub": {
+    "version": "0.8.1",
+    "commit": "36aaec46282e67bd01b87035165977a40d23acc9",
+    "files": {
+      "bootstrap.js": "5e8f67d64ebea64bb0e8e870e4fd9178eab22eceaad9000701b956ecabe02cdc",
+      "extension-runtime.js": "468b4ce7dbd458bd0af7caead946cf42405adc7c0298d5f90b0bc11f063e747a"
+    }
+  },
+  "polisher": {
+    "version": "1.2.1",
+    "commit": "5a0a5cf9f4ac7cf5dbb9dac0134d307ad1caa9d1",
+    "referenceFiles": {
+      "polisher.js": "99844ac1a9c5deb0c74437839611cea157fa6b5c8bbe54e3985aca0de949f8a4",
+      "resources.js": "7ae36630c96bd48b010833ae7a626928ccc780b9eaae898ee266b61eb419ba8a",
+      "launcher-adapter.js": "4d3a747416a22c464e0e112e1573d2e347f3fbb3085fad4b521ac1dd32a673cc",
+      "native-launcher.js": "b58f842eb4ebf7030496d5e11fbc83e548d8b85f2866a1177809e0a26b49dc05",
+      "native-floating-presentation.js": "c51a9445f9c696dc67cd987fadcccf24693e60959fe703f1690ccddd1b92b5b4",
+      "assets/native-launcher.css": "2ca9b80324070a7aa37031f27f7be9d6b624e207fbae17c4f4fb81c1f22e6256",
+      "tests/native-launcher.test.mjs": "1c9094f127c3ef3cea8e64737bff036f237361d1a25169b02260cb34e72648bf"
+    }
+  }
+}

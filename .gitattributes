@@ -1,0 +1,7 @@
+* text=auto eol=lf
+*.png binary
+# Preserve the exact Owner bytes, including any original newline convention.
+tests/fixtures/0.1.22/script.json -text
+tests/fixtures/0.1.22/core.js -text
+tests/fixtures/0.1.22/legacy-suite.cjs -text
+tests/fixtures/0.1.22/golden.json -text

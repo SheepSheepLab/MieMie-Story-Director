@@ -1,0 +1,29 @@
+{
+  "name": "miemie-story-director",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "MieMie Story Director: frozen 0.1.22 behavior with factory lifecycle and serialized Hub / Standalone ownership.",
+  "license": "GPL-3.0-or-later",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "check:source": "node tools/compose-source.mjs --check",
+    "check:runtime": "node tools/compose-runtime.mjs --check",
+    "check:entry": "node tools/compose-dual-mode.mjs --check",
+    "build": "node tools/build.mjs",
+    "check:package": "node tools/validate-package.mjs",
+    "check:reproducible": "node tools/check-reproducible.mjs",
+    "test:package": "node --test tests/phase5-*.test.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SheepSheepLab/MieMie-Story-Director.git"
+  },
+  "devDependencies": {
+    "acorn": "8.15.0",
+    "jsdom": "26.1.0"
+  }
+}

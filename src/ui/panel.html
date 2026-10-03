@@ -1,0 +1,156 @@
+<style>
+#meeme-story-director .sp-panel{margin:14px 0;padding:12px;border:1px solid #657bac;border-radius:12px;background:#11182a}
+#meeme-story-director .sp-panel summary{cursor:pointer;font-weight:600;padding:6px 0}
+#meeme-story-director .sp-panel label{display:block;margin:12px 0 5px}
+#meeme-story-director .sp-panel input,#meeme-story-director .sp-panel textarea{box-sizing:border-box;width:100%;min-width:0}
+#meeme-story-director .sp-panel textarea{min-height:90px}
+#meeme-story-director .sp-row{display:flex;gap:10px;margin-top:12px}#meeme-story-director .sp-row>*{flex:1;min-width:0}
+#meeme-story-director .sp-panel [data-sp-toggle]{width:100%;margin-top:12px}
+#meeme-story-director .sp-panel pre{max-height:320px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
+#meeme-story-director .sp-panel p{font-size:12px;color:#bdc9df;line-height:1.6}
+#meeme-story-director .sp-panel dialog{width:min(900px,calc(100vw - 32px));max-height:calc(100dvh - 40px);margin:auto;padding:20px;border:1px solid #849ac7;border-radius:16px;background:#121426;color:#e8ecff;overflow:auto}
+#meeme-story-director .sp-panel dialog::backdrop{background:#050612aa;backdrop-filter:blur(5px)}
+#meeme-story-director .sp-panel dialog pre{max-height:60dvh;min-height:160px;padding:12px;background:#090c18;border-radius:8px;user-select:text}
+#meeme-story-director .sp-debug-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+#meeme-story-director .sp-panel [data-sp-open-debug]{width:100%;margin-top:12px}
+#meeme-story-director .sp-panel select{width:100%;min-width:0}
+#meeme-story-director .sp-panel details{margin-top:16px}
+#meeme-story-director .sp-key-row,#meeme-story-director .sp-model-row{display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap}
+#meeme-story-director .sp-key-row label{display:flex;align-items:center;gap:8px;margin:0;flex:1}
+#meeme-story-director .sp-key-row input{width:18px;height:18px;margin:0;flex:none}
+#meeme-story-director .sp-model-row small{flex:1;min-width:180px;color:#bdc9df;line-height:1.6}
+#meeme-story-director [data-sp-rules-preview]{max-height:240px;overflow:auto;margin-top:12px;border:1px solid #445574;border-radius:9px;padding:4px 12px}
+#meeme-story-director .sp-rule{padding:10px 0;line-height:1.5;overflow-wrap:anywhere;border-bottom:1px solid #33425b}
+#meeme-story-director .sp-rule:last-child{border-bottom:0}
+#meeme-story-director .sp-rule small{display:block;color:#9babcb;font-size:11px;margin-top:3px}
+#meeme-story-director .sp-library-tools{display:flex;align-items:center;gap:8px;margin:12px 0}#meeme-story-director .sp-library-tools span{flex:1}
+#meeme-story-director :is([data-sp-requirements],[data-sp-plannings],[data-sp-writers]){max-height:260px;overflow:auto;border:1px solid #445574;border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:8px}
+#meeme-story-director .sp-requirement{display:flex;align-items:center;gap:6px;padding:6px;border:1px solid transparent;border-radius:8px;min-width:0}
+#meeme-story-director .sp-requirement[data-active=true]{background:#153638}#meeme-story-director .sp-requirement[data-selected=true]{border-color:#adc3ff}
+#meeme-story-director .sp-requirement button{padding:6px!important;flex:none;display:grid;place-items:center;line-height:1.4}
+#meeme-story-director .sp-requirement .sp-requirement-name{display:block;text-align:left;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#meeme-story-director .sp-requirement input{width:18px;height:18px;flex:none;margin:0}
+#meeme-story-director .sp-library-hint{display:block;color:#aabbd7;margin:10px 0;line-height:1.6}
+#meeme-story-director .sp-panel :is([data-sp-requirement-editor],[data-sp-planning-editor],[data-sp-writer-editor]){width:min(680px,calc(100vw - 32px));height:480px;max-height:calc(100dvh - 40px);margin:auto;padding:0;border:1px solid #7890ba;border-radius:16px;overflow:hidden}
+#meeme-story-director .sp-panel :is([data-sp-requirement-editor],[data-sp-planning-editor],[data-sp-writer-editor])[open]{display:flex;flex-direction:column}
+#meeme-story-director .sp-editor-body{padding:20px;overflow:auto;min-height:0;flex:1 1 auto}
+#meeme-story-director .sp-editor-footer{padding:14px 20px;border-top:1px solid #445574;flex:none;background:#121426}
+#meeme-story-director :is([data-sp-requirement-close],[data-sp-planning-close],[data-sp-writer-close]){width:100%;min-height:44px}
+#meeme-story-director .sp-requirement{cursor:grab;transition:background .15s,border-color .15s}
+#meeme-story-director .sp-requirement[data-dragging=true]{opacity:.5;border-style:dashed;border-color:#aec5ff}
+#meeme-story-director .sp-requirement[data-drop-target=true]{border-color:#75d9ca;box-shadow:0 0 0 2px #75d9ca55}
+#meeme-story-director :is([data-sp-requirement-content],[data-sp-planning-content],[data-sp-writer-content]){height:227px;min-height:120px;max-height:none;resize:vertical}
+#meeme-story-director .sp-library-box{border:1px solid #445574;border-radius:12px;overflow:hidden;margin-top:16px;background:#10192b}
+#meeme-story-director .sp-library-tools{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0;padding:12px;border-bottom:1px dashed #536587}
+#meeme-story-director .sp-library-tools strong{flex:1;min-width:0;font-size:14px}
+#meeme-story-director .sp-library-actions{display:flex;gap:6px;align-items:center;flex:none}
+#meeme-story-director .sp-library-actions button{padding:7px 8px;min-height:38px;white-space:nowrap}
+#meeme-story-director :is([data-sp-requirements],[data-sp-plannings],[data-sp-writers],[data-sp-rules-preview]){margin:0;border:0;border-radius:0;padding:10px;max-height:260px;overflow:auto;overscroll-behavior:contain}
+#meeme-story-director .sp-requirement{flex-shrink:0}
+#meeme-story-director .sp-requirement .sp-requirement-name,#meeme-story-director .sp-requirement .sp-drag-handle{cursor:grab;touch-action:none;user-select:none}
+#meeme-story-director .sp-requirement[data-touch-drag=true]{position:relative;z-index:2;pointer-events:none;box-shadow:0 8px 20px #0008;opacity:.95}
+#meeme-story-director .sp-template-options{display:flex;gap:10px;margin:18px 0}
+#meeme-story-director .sp-template-options button{flex:1;min-height:48px}
+#meeme-story-director .sp-template-cancel{width:100%}
+@media(max-width:420px){#meeme-story-director .sp-library-tools{padding:10px 8px;gap:4px}#meeme-story-director .sp-library-actions{gap:4px}#meeme-story-director .sp-library-actions button{font-size:12px;padding:7px 5px}#meeme-story-director .sp-requirement{gap:4px;padding:4px}#meeme-story-director .sp-requirement button{padding:5px!important}}
+#meeme-story-director .sp-panel [data-sp-planning-template]{width:min(680px,calc(100vw - 32px));padding:20px}
+#meeme-story-director [data-sp-planning-template-heading]:focus{outline:none}
+#meeme-story-director .sp-panel label.sp-jelly-check{position:relative;display:grid;place-items:center;width:30px;height:32px;flex:none;margin:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#meeme-story-director .sp-jelly-check input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;z-index:1}
+#meeme-story-director .sp-jelly-face{display:grid;place-items:center;width:21px;height:21px;border:1px solid #647caa;border-radius:6px;background:#101729;transition:background .25s,border-color .25s,box-shadow .25s}
+#meeme-story-director .sp-jelly-tick{width:6px;height:11px;border:solid white;border-width:0 2px 2px 0;transform:translateY(-1px) rotate(45deg) scale(0);transition:transform .2s}
+#meeme-story-director .sp-jelly-check input:checked + .sp-jelly-face{background:#5079c0;border-color:#bed8ff;box-shadow:0 0 13px #7eacff44}
+#meeme-story-director .sp-jelly-check input:checked + .sp-jelly-face .sp-jelly-tick{transform:translateY(-1px) rotate(45deg) scale(1);transition-delay:.08s}
+#meeme-story-director .sp-jelly-check[data-animate=true] .sp-jelly-face{animation:sp-jelly-pop .42s both}
+#meeme-story-director .sp-jelly-check:hover .sp-jelly-face{border-color:#c0d4f8}
+#meeme-story-director .sp-jelly-check input:focus-visible + .sp-jelly-face{outline:2px solid #bed6ff;outline-offset:3px}
+@keyframes sp-jelly-pop{0%{transform:scale(.8)}35%{transform:scale(1.18,.86)}65%{transform:scale(.94,1.08)}100%{transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){#meeme-story-director .sp-jelly-face,#meeme-story-director .sp-jelly-tick{animation:none!important;transition:none!important}}
+#meeme-story-director .sp-requirement{gap:7px;padding:7px 6px;border-radius:9px;background:#141c30}
+#meeme-story-director .sp-requirement:hover{border-color:#547698}
+#meeme-story-director .sp-requirement[data-active=true]{background:#16393e}
+#meeme-story-director .sp-requirement button{width:28px;height:30px;min-height:0;border:0;background:transparent;border-radius:7px;padding:4px!important;font-size:16px;color:#aec2e1;box-shadow:none}
+#meeme-story-director .sp-requirement button:hover{background:#344665;color:#e8efff}
+#meeme-story-director .sp-requirement .sp-requirement-name{width:auto;height:32px;padding:0!important;font-size:13px;font-weight:500;color:#e8efff;background:transparent;border:0;border-radius:0}
+#meeme-story-director .sp-requirement .sp-requirement-name:hover{background:transparent}
+#meeme-story-director :is([data-sp-requirements],[data-sp-plannings],[data-sp-writers]){gap:0;padding:4px 12px}
+#meeme-story-director .sp-requirement{padding:9px 2px;gap:7px;border:0;border-bottom:1px solid #30455f;border-radius:0;background:transparent}
+#meeme-story-director .sp-requirement:last-child{border-bottom:0}
+#meeme-story-director .sp-requirement[data-active=true]{background:linear-gradient(90deg,#267878a6 0%,#245a6866 60%,#1d3c5122 100%)}
+#meeme-story-director .sp-requirement[data-selected=true]{box-shadow:inset 2px 0 #a5cbec}
+#meeme-story-director .sp-requirement button{border:0;background:transparent;border-radius:6px;min-height:30px;color:#b9cbea}
+#meeme-story-director .sp-requirement .sp-requirement-name{color:#edf3ff;font-size:14px}
+#meeme-story-director .sp-panel label.sp-jelly-check{width:30px;height:32px}
+#meeme-story-director .sp-jelly-face{width:21px;height:21px;border-radius:6px}
+#meeme-story-director .sp-jelly-tick{width:6px;height:11px;border-width:0 2px 2px 0;transform:translateY(-1px) rotate(45deg) scale(0)}
+#meeme-story-director .sp-jelly-check input:checked + .sp-jelly-face .sp-jelly-tick{transform:translateY(-1px) rotate(45deg) scale(1)}
+#meeme-story-director .sp-panel .sp-entry-menu{position:fixed;inset:auto;margin:0;width:100px;max-height:calc(100dvh - 16px);overflow:auto;padding:5px;border:1px solid #587398;border-radius:9px;background:#22344d;color:#e8efff;box-shadow:0 8px 22px #0007;font:12px/1.55 system-ui}
+#meeme-story-director .sp-panel .sp-entry-menu::backdrop{background:transparent;backdrop-filter:none;pointer-events:none}
+#meeme-story-director .sp-panel .sp-entry-menu button{display:block;width:100%;text-align:left;background:transparent;border:0;padding:8px;font:12px/1.55 system-ui;border-radius:7px;color:#aec2e1}
+#meeme-story-director .sp-panel .sp-entry-menu button:hover{background:#344665}
+#meeme-story-director .sp-library-tools{padding:13px 12px;gap:6px;border-color:#3b5271}
+#meeme-story-director .sp-library-tools strong{font-size:14px;font-weight:700}
+#meeme-story-director .sp-library-actions{gap:3px}
+#meeme-story-director .sp-library-actions button{font:12px/1.55 system-ui;padding:5px;min-height:0;background:transparent;border:0;border-radius:7px}
+#meeme-story-director .sp-library-box{background:#101a2c;border-color:#384c6b;border-radius:15px}
+#meeme-story-director .sp-requirement{padding:11px 2px;gap:8px;border-bottom:1px solid #293d57;background:transparent;box-shadow:none}
+#meeme-story-director .sp-requirement[data-active=true]{background:linear-gradient(90deg,#1f575644,transparent)}
+#meeme-story-director .sp-requirement[data-selected=true]{box-shadow:none}
+#meeme-story-director .sp-requirement button{padding:4px!important;width:28px;height:30px;min-height:0;font:16px/1.55 system-ui;border:0;background:transparent;color:#aec2e1}
+#meeme-story-director .sp-requirement .sp-requirement-name{width:auto;height:auto;padding:0!important;font:500 14px/1.55 system-ui;color:#e8efff}
+#meeme-story-director .sp-jelly-face{background:#111c31;border-color:#6d86ae}
+#meeme-story-director .sp-jelly-check input:checked + .sp-jelly-face{background:#537fc3;border-color:#adcfff;box-shadow:none}
+/* A compact cards, retaining B edit/more controls. */
+#meeme-story-director :is([data-sp-requirements],[data-sp-plannings],[data-sp-writers]){gap:8px;padding:10px}
+#meeme-story-director .sp-requirement,#meeme-story-director .sp-requirement:last-child{padding:7px 6px;gap:7px;border:1px solid transparent;border-radius:9px;background:#141c30;box-shadow:none;transition:background .2s,border-color .2s,box-shadow .2s}
+#meeme-story-director .sp-requirement[data-active=true]{background:#16393e;box-shadow:inset 0 0 0 1px #539d9e44}
+#meeme-story-director .sp-requirement:hover{border-color:#547698}
+#meeme-story-director .sp-requirement .sp-requirement-name{font:500 13px/1.55 system-ui}
+#meeme-story-director .sp-requirement[data-drop-target=true]{border-color:#75d9ca;box-shadow:0 0 0 2px #75d9ca55}
+#meeme-story-director .sp-library-actions button:hover{background:#344665;box-shadow:inset 0 0 0 1px #718bab;color:#e8efff}
+#meeme-story-director .sp-panel .sp-entry-menu:popover-open{animation:sp-menu-appear .16s ease-out}
+@keyframes sp-menu-appear{from{opacity:0;transform:scale(.94) translateY(3px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@media(prefers-reduced-motion:reduce){#meeme-story-director .sp-panel .sp-entry-menu:popover-open{animation:none}}
+
+#meeme-story-director .sp-panel{border:0;background:transparent;padding:0;margin:0;display:flex;flex-direction:column;min-height:0}
+#meeme-story-director .sp-workspace{display:flex;min-height:0;margin-top:14px;flex:1}
+#meeme-story-director .sp-sidebar{display:flex;flex-direction:column;gap:8px;width:48px;flex:none;padding-top:15px;position:relative;z-index:1}
+#meeme-story-director .sp-sidebar button{display:grid;place-items:center;width:49px;height:46px;padding:11px;border:1px solid transparent;border-radius:11px 0 0 11px;background:transparent;color:#8497b9}
+#meeme-story-director .sp-sidebar button[aria-selected=true]{background:#172339;color:#c3d7ff;border-color:#4b6384;border-right-color:#172339;box-shadow:inset 3px 0 #9cbcff}
+#meeme-story-director .sp-sidebar svg{width:23px;height:23px}
+#meeme-story-director .sp-tab-content{flex:1;min-width:0;overflow:auto;max-height:49dvh;padding:16px;background:#172339;border:1px solid #4b6384;border-radius:12px;scrollbar-width:thin;scrollbar-color:#4b6384 transparent;overscroll-behavior:contain}
+#meeme-story-director .sp-page-heading{font-size:15px;margin:0 0 14px;color:#e6efff;font-weight:600}
+#meeme-story-director [role=tabpanel]:not([hidden]){animation:sp-page-in .2s ease-out}
+@keyframes sp-page-in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+#meeme-story-director .sp-panel [data-sp-open-debug]{flex:none}
+#meeme-story-director .sp-panel [data-sp-status]:empty{display:none}
+@media(max-width:420px){#meeme-story-director .sp-tab-content{padding:10px}#meeme-story-director .sp-sidebar{width:40px}#meeme-story-director .sp-sidebar button{width:41px;height:43px;padding:9px}}
+@media(prefers-reduced-motion:reduce){#meeme-story-director [role=tabpanel]:not([hidden]){animation:none}}
+</style>
+<button type="button" data-sp-toggle>故事导演：关闭</button>
+<div class="sp-workspace"><nav class="sp-sidebar" role="tablist" aria-label="故事导演设置"><button type="button" data-sp-tab-expert role="tab" aria-label="副API提示词" title="副API提示词"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="3"/><path d="M8 9h8M8 13h5M8 17h3"/></svg></button><button type="button" data-sp-tab-writer role="tab" aria-label="主API提示词" title="主API提示词"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19l4-1 10-10a2 2 0 0 0-4-4L5 14v5zM13 6l5 5M4 22h16"/></svg></button><button type="button" data-sp-tab-api role="tab" aria-label="接口配置" title="接口配置"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/></svg></button></nav><div class="sp-tab-content"><section data-sp-page-expert role="tabpanel" aria-label="副API提示词"><h3 class="sp-page-heading">副API提示词</h3><div class="sp-prompt-sections">
+<section class="sp-library-box"><header class="sp-library-tools"><strong>预设规划</strong></header><div data-sp-rules-preview role="list" aria-label="当前启用的规划条目"></div></section>
+<section class="sp-library-box"><header class="sp-library-tools"><strong>导演规划</strong><div class="sp-library-actions"><button type="button" data-sp-planning-add aria-label="新建导演规划" title="新建">+</button><button type="button" data-sp-planning-import>导入</button><button type="button" data-sp-planning-export>导出全部</button></div></header>
+<input type="file" data-sp-planning-file accept=".json,application/json" hidden><div data-sp-plannings role="list" aria-label="导演规划列表"></div></section>
+
+<section class="sp-library-box"><header class="sp-library-tools"><strong>最高指令</strong><div class="sp-library-actions"><button type="button" data-sp-requirement-add aria-label="新建最高指令" title="新建">+</button><button type="button" data-sp-requirement-import>导入</button><button type="button" data-sp-requirement-export>导出全部</button></div></header>
+<input type="file" data-sp-requirement-file accept=".json,application/json" hidden><div data-sp-requirements role="list" aria-label="最高指令列表"></div></section>
+
+</div></section><section data-sp-page-writer role="tabpanel" aria-label="主API提示词"><h3 class="sp-page-heading">主API提示词</h3>
+<section class="sp-library-box"><header class="sp-library-tools"><strong>主 API 提示词</strong><div class="sp-library-actions"><button type="button" data-sp-writer-add aria-label="新建主 API 提示词" title="新建">+</button><button type="button" data-sp-writer-import>导入</button><button type="button" data-sp-writer-export>导出全部</button></div></header>
+<input type="file" data-sp-writer-file accept=".json,application/json" hidden><div data-sp-writers role="list" aria-label="主 API 提示词列表"></div></section>
+
+</section><section data-sp-page-api role="tabpanel" aria-label="接口配置"><h3 class="sp-page-heading">接口配置</h3>
+<label>接口地址（包含 /v1 等接口前缀）<input data-sp-base placeholder="https://服务地址/v1" autocomplete="off"></label>
+<label>API 密钥<input type="password" data-sp-key autocomplete="off"></label>
+<div class="sp-key-row"><label><input type="checkbox" data-sp-remember>在此浏览器记住密钥</label><button type="button" data-sp-clear-key>清除密钥</button></div>
+<div class="sp-model-row"><button type="button" data-sp-models>获取模型列表</button><small>默认仅当前页面使用。勾选后本地保存，不随脚本导出；同源脚本可能读取。</small></div>
+<label>可用模型<select data-sp-model-list><option value="">先获取模型列表，再选择</option></select></label>
+<label>模型名称（也可手填）<input data-sp-model autocomplete="off"></label>
+<div class="sp-row"><label>最大输出 token<input type="number" data-sp-tokens min="512" max="131072"></label><label>超时（秒）<input type="number" data-sp-timeout min="30" max="1800"></label></div>
+<div class="sp-row"><button type="button" data-sp-save>保存接口</button><button type="button" data-sp-test>连接测试</button></div><p data-sp-api-status role="status"></p>
+</section></div></div><dialog data-sp-planning-editor aria-label="编辑导演规划"><div class="sp-editor-body"><strong>编辑导演规划</strong><label>名称<input data-sp-planning-name maxlength="200"></label><label>内容<textarea data-sp-planning-content placeholder="填写本条导演规划"></textarea></label></div><footer class="sp-editor-footer"><button type="button" data-sp-planning-close>完成</button></footer></dialog><dialog data-sp-requirement-editor aria-label="编辑最高指令"><div class="sp-editor-body"><strong>编辑最高指令</strong><label>名称<input data-sp-requirement-name maxlength="200"></label><label>内容<textarea data-sp-requirement-content placeholder="填写本条最高指令"></textarea></label></div><footer class="sp-editor-footer"><button type="button" data-sp-requirement-close>完成</button></footer></dialog><dialog data-sp-writer-editor aria-label="编辑主 API 提示词"><div class="sp-editor-body"><strong>编辑主 API 提示词</strong><label>名称<input data-sp-writer-name maxlength="200"></label><label>内容<textarea data-sp-writer-content placeholder="填写本条主 API 提示词"></textarea></label></div><footer class="sp-editor-footer"><button type="button" data-sp-writer-close>完成</button></footer></dialog><dialog data-sp-planning-template aria-label="选择导演规划模板"><strong data-sp-planning-template-heading tabindex="-1" autofocus>新建导演规划</strong><p>选择一种起始格式，内容可以自由修改。</p><div class="sp-template-options"><button type="button" data-sp-planning-single>单一</button><button type="button" data-sp-planning-multi>多合一</button><button type="button" data-sp-planning-custom>自定义</button></div><button type="button" class="sp-template-cancel" data-sp-planning-template-close>取消</button></dialog>
+<div class="sp-row"><button type="button" data-sp-cancel hidden>取消本轮规划</button></div>
+<p data-sp-status role="status"></p>
+<button type="button" data-sp-open-debug>打开导演调试窗口</button>
+<dialog data-sp-dialog aria-label="故事导演调试"><div class="sp-debug-head"><strong>故事导演 · 本轮检测</strong><button type="button" data-sp-close-debug>关闭</button></div><p>只读显示，不截断消息正文；不包含授权头。仅当前页面保存，清除或切换聊天后清空。</p><div class="sp-row"><select data-sp-debug-page aria-label="选择检测内容"><option value="overview">状态与用量</option><option value="rules">预设规划规则与来源</option><option value="expert">发给副API的完整请求</option><option value="task">副API完整报告</option><option value="writer">主API实际收到的消息</option></select><button type="button" data-sp-clear>清除记录</button></div><pre data-sp-debug></pre></dialog>
