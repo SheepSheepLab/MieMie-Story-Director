@@ -59,3 +59,18 @@ business source fragments remain intact. Source/runtime/entry checks and package
 validation are still required. Reproducibility compares two independent source
 snapshots with locked offline installs and complete artifact byte equality; it
 does not fabricate commits or override signing identity.
+
+## API2-only cleanup
+
+Only API2 Hub factories are adopted. Required lifecycle/Surface methods, the
+Source ready/release contract and Hub whenDisposed boundary must be present;
+a failed ready result is reported as failure. Disposal still waits for the
+current API2 completion boundary and this extension's own cleanup, rather than
+treating the synchronous disposed notification as completed teardown.
+
+Native Window and Back remain optional API2 capabilities. A Surface-only host
+may omit them; no Native availability or Shortcut integration is claimed in
+that case. Their capability checks do not dispatch an API1 implementation.
+Standalone uses the extension's own close route and data, independently of Hub.
+Historical API1 fixtures and published packages remain evidence only, outside
+the current production build closure.

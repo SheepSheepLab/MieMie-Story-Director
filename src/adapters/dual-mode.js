@@ -3,7 +3,7 @@ import {createAPI2NativeBridge} from './hub-api2.js';
 import {DIRECTOR_PRODUCT} from '../../product-identity.js';
 import {createDirectorNativeLauncher} from '../ui/native-launcher.js';
 // API2 source lifecycle; the product retains its native window implementation.
-// Hub presence suppresses Standalone; only Hub may mount an opt-in Shortcut.
+// API2 Hub presence suppresses Standalone; Native entries use its opt-in ownership contract.
 export function createDirectorDualMode({host, frame, manifest, factory, icon, launcherStyles='', onError = error => console.warn('['+DIRECTOR_PRODUCT.englishName+']', error)}) {
   const marker = '__MieMieDirectorSource';
   const previousSource = host[marker];
@@ -66,17 +66,20 @@ export function createDirectorDualMode({host, frame, manifest, factory, icon, la
     const previous = attached; attached = null; removeButton();
     if (!previous) return;
     await previous.lease.ready;
-    await previous.lease.release?.();
-    // Modern Hub resolves after full runtime cleanup. The final cleanup callback
-    // below also covers older versions whose disposed event fires early.
-    if (previous.hub.whenDisposed && host.__MieMieHub !== previous.hub) await previous.hub.whenDisposed;
+    await previous.lease.release();
+    // API2 disposal notifies synchronously; wait for its asynchronous completion.
+    if (host.__MieMieHub !== previous.hub) await previous.hub.whenDisposed;
     await Promise.all([...previous.sessions].map(session => session.finished));
   }
   async function attachHub(hub) {
+    if (typeof hub.whenDisposed?.then !== 'function') throw Error('Hub API2 requires whenDisposed.');
     await stopStandalone();
     if (disposed || currentHub() !== hub) return;
     const connection = {hub, sessions: new Set(), lease: null};
     function trackedFactory(api) {
+      if (!api?.signal || typeof api.signal.addEventListener !== 'function' ||
+          ['onCleanup','attachPanel','showPanel','closePanel'].some(key => typeof api[key] !== 'function'))
+        throw Error('Hub API2 is missing required lifecycle/Surface capabilities.');
       let complete, instance;
       const session = {finished: new Promise(resolve => { complete = resolve; })}; connection.sessions.add(session);
       // This listener precedes the business resource abort listener, so it can
@@ -99,8 +102,11 @@ export function createDirectorDualMode({host, frame, manifest, factory, icon, la
     }
     const lease = hub.extensions.provide(manifest, trackedFactory);
     if (!lease.ok) {mode = 'error'; throw Error(lease.error || 'Hub 注册失败。');}
-    connection.lease = lease; attached = connection; mode = 'hub';
-    await lease.ready;
+    if (typeof lease.ready?.then !== 'function' || typeof lease.release !== 'function') throw Error('Hub API2 requires Source ready/release.');
+    connection.lease = lease; attached = connection;
+    const result = await lease.ready;
+    if (result?.ok === false) throw Error(result.error || 'Hub API2 registration failed.');
+    mode = 'hub';
 
   }
   async function reconcile() {

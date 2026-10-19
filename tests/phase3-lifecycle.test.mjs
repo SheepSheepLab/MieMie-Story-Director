@@ -125,8 +125,8 @@ test('Source replacement waits for asynchronous teardown',async t=>{
   let finish,delay=false;const f=fixture(t,{deactivateDelay:()=>delay?new Promise(r=>finish=r):null}),old=f.make();await old.ready;delay=true;
   const stopping=old.dispose(),next=f.make();await flush();assert.equal(f.count.activated,1);finish();delay=false;await stopping;await next.ready;unique(f);assert.equal(next.mode,'standalone');
 });
-test('Hub loss waits for old Runtime final cleanup even without whenDisposed',async t=>{
-  let finish,delay=false;const f=fixture(t,{deactivateDelay:()=>delay?new Promise(r=>finish=r):null}),h=hubFixture(f,{legacy:true});h.start();const s=f.make();await s.ready;delay=true;
+test('API2 Hub disposal waits for asynchronous Runtime completion before Standalone',async t=>{
+  let finish,delay=false;const f=fixture(t,{deactivateDelay:()=>delay?new Promise(r=>finish=r):null}),h=hubFixture(f);h.start();const s=f.make();await s.ready;delay=true;
   const stopping=h.stop();await flush();assert.equal(f.count.activated,1);finish();delay=false;await stopping;await s.settled();unique(f);assert.equal(s.mode,'standalone');
 });
 for(const event of ['pagehide','unload'])test(event+' removes source listeners; later Hub events cannot reactivate',async t=>{
