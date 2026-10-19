@@ -1,7 +1,8 @@
+import {createAPI2NativeBridge} from './hub-api2.js';
 // Adapted from MieMie Polisher v1.2.1 (5a0a5cf9), GPL-3.0-or-later.
 import {DIRECTOR_PRODUCT} from '../../product-identity.js';
 import {createDirectorNativeLauncher} from '../ui/native-launcher.js';
-// Optional cooperative launcher protocol v1. No Hub code or polling is needed.
+// API2 source lifecycle; the product retains its native window implementation.
 // Hub presence suppresses Standalone; only Hub may mount an opt-in Shortcut.
 export function createDirectorDualMode({host, frame, manifest, factory, icon, launcherStyles='', onError = error => console.warn('['+DIRECTOR_PRODUCT.englishName+']', error)}) {
   const marker = '__MieMieDirectorSource';
@@ -17,7 +18,7 @@ export function createDirectorDualMode({host, frame, manifest, factory, icon, la
   function report(error) { try { onError(error); } catch (_) {} }
   function currentHub() {
     const hub = host.__MieMieHub;
-    return hub?.apiVersion === 1 && typeof hub.extensions?.provide === 'function' ? hub : null;
+    return hub?.apiVersion === 2 && typeof hub.extensions?.provide === 'function' ? hub : null;
   }
   function removeButton() {native?.dispose();native=null;}
   function capture(instance) { if (!disposed) handoff = instance?.captureSession?.() || null; }
@@ -84,12 +85,15 @@ export function createDirectorDualMode({host, frame, manifest, factory, icon, la
       api.signal.addEventListener('abort', abort, {once: true});
       // Registered first, therefore called last by the Runtime's LIFO cleanup.
       api.onCleanup(() => {api.signal.removeEventListener('abort', abort); connection.sessions.delete(session); complete();});
-      instance = factory(api);
+      const bridge = typeof api.registerNativeWindow === 'function' ? createAPI2NativeBridge(api, {
+        createLauncher: open => createDirectorNativeLauncher({host,icon,styles:launcherStyles,mode:'native',open,onError:report}), onError:report,
+      }) : null;
+      instance = factory(bridge?.api || api);
       return {...instance, async activate() {
         await instance.activate?.();
         if (!api.signal.aborted) {
           restore(instance);
-          if(typeof api.registerShortcutLauncher==='function')api.registerShortcutLauncher({mount:({open})=>createDirectorNativeLauncher({host,icon,styles:launcherStyles,mode:'shortcut',open,onError:report})});
+          bridge?.register(instance);
         }
       }};
     }

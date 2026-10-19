@@ -1,5 +1,7 @@
 # Phase 1–5 Test Plan 与覆盖
 
+> API2 开发分支补充：当前契约见 [HUB-API2.md](HUB-API2.md)。本页既有 API1 / Shortcut / 历史验收描述仅对应原版本；当前适配不恢复该 Runtime，测试边界与机器校验已独立迁移。
+
 基于 Owner 原始 0.1.22。Node >=22；安装固定开发依赖后，所有测试离线运行。运行 `npm ci --ignore-scripts`，再执行 `npm run check:source`、`npm run check:runtime`、`npm run check:entry` 与 `npm test`。
 
 ## 测试分层

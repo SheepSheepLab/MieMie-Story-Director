@@ -1,5 +1,7 @@
 # Phase 3 architecture
 
+> API2 开发分支补充：当前契约见 [HUB-API2.md](HUB-API2.md)。本页既有 API1 / Shortcut / 历史验收描述仅对应原版本；当前适配不恢复该 Runtime，测试边界与机器校验已独立迁移。
+
 ## Frozen authority
 
 For Final RC 0.2.0, the Owner-approved 0.1.5 implementation is the latest

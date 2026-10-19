@@ -6,7 +6,7 @@ import {composeRuntime} from './compose-runtime.mjs';
 // Local validation runner only. Returns code in memory: no package/release writes.
 export async function composeDualMode() {
   const modules=['product-identity.js','src/host/resources.js','src/ui/native-floating-presentation.js','src/ui/native-launcher.js',
-    'src/host/business-runtime.generated.js','src/director.js','src/ui/official-presentation.js','src/ui/default-prompt-protection.js','src/ui/official-director.js','src/adapters/dual-mode.js','src/default-prompts.js','entry.js'];
+    'src/host/business-runtime.generated.js','src/director.js','src/ui/official-presentation.js','src/ui/default-prompt-protection.js','src/ui/official-director.js','src/adapters/hub-api2.js','src/adapters/dual-mode.js','src/default-prompts.js','entry.js'];
   const read=file=>readFile(new URL(file,projectRoot),'utf8');
   const runtime=await composeRuntime();
   if(await read('src/host/business-runtime.generated.js')!==runtime)throw Error('Generated runtime is stale.');

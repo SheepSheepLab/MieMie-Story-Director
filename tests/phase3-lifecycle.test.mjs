@@ -53,7 +53,7 @@ test('New lifecycle restores saved settings/libraries and remembered key unchang
 });
 test('Hub only uses factory/attachPanel and no standalone entry',async t=>{
   const f=fixture(t),h=hubFixture(f);h.start();const s=f.make();await s.ready;unique(f);assert.equal(s.mode,'hub');assert.equal(orb(f),null);assert.equal(h.panels.size,1);
-  await h.openHoneycomb();assert.equal(panel(f).hidden,false);assert.equal(h.motion.honeycomb,1);assert.equal(h.motion.native,0);await f.last.api.closePanel();assert.equal(panel(f).hidden,true);await h.stop();await s.settled();
+  await h.openHoneycomb();assert.equal(panel(f).hidden,false);assert.equal(h.motion.honeycomb,1);assert.equal(h.motion.native,0);await f.last.api.closePanel(h.surfaceLease);assert.equal(panel(f).hidden,true);await h.stop();await s.settled();
 });
 test('Standalone → Hub completes teardown before mounting Hub',async t=>{
   const f=fixture(t),s=f.make();await s.ready;const old=panel(f),h=hubFixture(f);h.start();await s.settled();unique(f);

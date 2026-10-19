@@ -1,5 +1,7 @@
 # Package v1 / build
 
+> API2 开发分支补充：当前契约见 [HUB-API2.md](HUB-API2.md)。本页既有 API1 / Shortcut / 历史验收描述仅对应原版本；当前适配不恢复该 Runtime，测试边界与机器校验已独立迁移。
+
 当前正式 Package 版本 **0.2.0**，使用 Owner 已批准的同一冻结产物。最新功能基线为 **0.1.5 实际实现**；0.1.22 保留为原始历史参考。此前 0.1.4／0.1.5 的大小、SHA 和可复现记录均不是当前验收依据。冻结数值见 [Final RC 报告](FINAL-RC.md)，正式附件见 [0.2.0 Release](https://github.com/SheepSheepLab/MieMie-Story-Director/releases/tag/v0.2.0)。人工 smoke test 保持发布后 PENDING。
 
 ## 规范来源

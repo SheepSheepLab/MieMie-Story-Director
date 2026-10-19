@@ -17,11 +17,11 @@ export async function composeRuntime() {
   once("  if(host[ID]){if(host[ID].open)host[ID].open();else host.alert('请先停用工具箱内的导演实验版并刷新，再启用独立导演。');return;}",
     "  if(host[ID])throw Error('检测到旧版或重复的故事导演；请停用旧脚本并刷新。');");
   once('(doc.documentElement||doc.body).appendChild(directorRoot);', '(doc.documentElement||doc.body).appendChild(directorRoot);resources.add(()=>directorRoot.remove());');
-  once('const open=()=>{directorWindow.hidden=false;inspectRules();};','const open=()=>{if(disposed)return false;inspectRules();return api.showPanel();};');
+  once('const open=()=>{directorWindow.hidden=false;inspectRules();};','let presentationLease;const open=lease=>{if(disposed)return false;presentationLease=lease;inspectRules();return api.showPanel(lease);};');
   once("  directorRoot.querySelector('[data-director-launch]').onclick=()=>{directorWindow.hidden=!directorWindow.hidden;if(!directorWindow.hidden)inspectRules();};",
     "  directorRoot.querySelector('[data-director-launch]').remove();");
   once("directorRoot.querySelector('[data-director-close]').onclick=()=>{directorWindow.hidden=true;};",
-    "directorRoot.querySelector('[data-director-close]').onclick=()=>api.closePanel();");
+    "directorRoot.querySelector('[data-director-close]').onclick=()=>api.closePanel(presentationLease);");
   source=source.replaceAll('host.setTimeout(', 'resources.timeout(').replaceAll('host.clearTimeout(', 'resources.clear(');
   source=source.replaceAll('new host.AbortController()', 'resources.trackController(new host.AbortController())');
   source=source.replaceAll('host.URL.createObjectURL(', 'resources.objectURL(').replaceAll('host.URL.revokeObjectURL(', 'resources.revokeURL(');
