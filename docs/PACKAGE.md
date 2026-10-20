@@ -53,4 +53,4 @@ Final RC 阶段使用未提交源快照进行可复现检查；正式首发还�
 
 ## 本分支 API2 构建合同
 
-当前机器声明来自根 `manifest.json`：Schema1、API2、hubApi 2/2。Package、Metadata、Build Identity 仍为 Schema1；Build Identity 不含 API 版本。生产包验证调用固定 API2 Hub Package 夹具（`tests/fixtures/hub-api2`），上方 0.8.1 夹具继续保留为原阶段来源。构建仍由 `tools/compose-runtime.mjs` 的唯一匹配规则推导 Runtime，再由正式入口与打包器生成；不能手改生成文件或重录业务 golden。当前包两层 hash 和真实宿主范围见 [TESTING](TESTING.md#api2-pre-main2026-10-20)。内部版本暂为 0.2.0，仅用于隔离审核，禁止替换已发布的同版 Asset。
+当前机器声明来自根 `manifest.json`：Schema1、API2、hubApi 2/2。Package、Metadata、Build Identity 仍为 Schema1；Build Identity 不含 API 版本。生产包验证调用固定 API2 Hub Package 夹具（`tests/fixtures/hub-api2`），上方 0.8.1 夹具继续保留为原阶段来源。构建仍由 `tools/compose-runtime.mjs` 的唯一匹配规则推导 Runtime，再由正式入口与打包器生成；不能手改生成文件或重录业务 golden。当前包两层 hash 和真实宿主范围见 [TESTING](TESTING.md#api2-pre-main2026-10-20)。Owner 已批准产品版本 0.3.0，当前仍为隔离审核候选；附件名和机器版本由正式构建器同步生成，禁止替换已发布 0.2.0 Asset。

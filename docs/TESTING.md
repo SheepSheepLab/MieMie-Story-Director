@@ -143,3 +143,15 @@ Runtime API2 与 Managed Package v1 为两道 Gate：开发候选 Runtime／Nati
 原始证据为 **Owner 私有审核材料，尚未公开下载**：`MieMie-Hub-0.9.0-Final-Pre-Main-Review.zip`，SHA-256 `8c06fdad93ff68c5be5699b742d98e4849000b532eaa072bc3279165ee473d73`。包内 `evidence/FINAL-INTEGRATION-LOCK.json`、`FINAL-ACCEPTANCE-RESULTS.json`、`FINAL-BUILD-AUDIT.json`、`FINAL-CI-RESULTS.json` 关联真实源码、产物和日志；不以本机路径充当公共证据。以下是该阶段的既有执行记录，本轮文档维护不声称重新运行 Safari 或宿主；本轮新 HEAD 的本地／Linux CI 回执另随 Owner 审核包交付。
 
 包内 `final-MieMie-Story-Director-test.log`、构建与source/runtime/entry/reproducibility日志、`portable-*-MieMie-Story-Director.json`、`D-managed-host.json`及失败历史分别保存。真实OS拼音只在Polisher测过，本产品未移用该通过结论；原0.2.0正式Assets仍保持历史字节。
+
+## 产品版本对齐候选（2026-10-20）
+
+Owner 已批准本版 **0.3.0**，当前仍为未发行候选。本节追加独立新执行记录；上方旧产品版本、Pre-Main hash、历史Golden、Safari／OS输入法与手工结论保留原对象范围，不追溯改写。
+
+本轮最终版本的 `npm test`：**527 PASS／0 FAIL／0 SKIP**。正式构建连续两次产物逐字一致；check:source／runtime／entry／package／reproducible 均通过，历史0.1.22及已批准业务Golden不改。 当前附件 `MieMie-Story-Director-Extension-0.3.0.json`，完整附件 SHA-256 `458b51fe7144396af8c100f316fee822559f9e1bb77631dcf9fcd92c15ac9640`；解析后 content SHA-256 `0480ab11177ab96ce0b010f0c3f0e14ad6908ac1788a26f59f971f46ca9a0d7e`。最终签名 HEAD 的空目录锁文件重建、Linux CI及原始日志单独随 Owner 本轮审核包交付。
+
+Manifest Schema1、Package1、Metadata1、Build Identity1 均保持；Manifest 为 API2／hubApi2–2，Build Identity 不增加 apiVersion。新版只要求 Hub Runtime API2，Standalone、数据键和原业务模型不变。本轮当前版本断言与UI文字随版本更新，历史夹具及已发布资产原样保留；生成脚本在显式产品版本归一化后与进入本轮的API2候选逐字一致，没有新增旧Runtime或兼容层。
+
+Runtime 与 Managed Package 分开记录：实际最终脚本的API2注册路径审计通过，未含API1注册或Shortcut调用；三款实际新字节的隔离机器流程涵盖首次安装、从前一API2开发候选更新、保存回读、同实例／用户名称／data／文件夹／排序／启用保持、恢复、取消与物理卸载。Node合成GitHub／saved tree不计为真实宿主或生产；本轮真实隔离Tavern及浏览器业务结果另见 Owner 回执。既有公开API1包仅在安全管理规则内识别，不恢复API1 Runtime；不把旧Hub向后兼容列为新版发行Gate。
+
+本节不声称重新执行真实Safari／OS输入法／OS动画设置或物理移动设备。生产 Registry API2、生产Origin／OAuth、正式新Assets及真实在线Managed、物理移动Safari、真实外部模型供应商、Owner手工验收及正式发行授权仍独立Pending。
