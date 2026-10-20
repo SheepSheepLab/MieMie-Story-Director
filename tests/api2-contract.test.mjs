@@ -25,3 +25,12 @@ test('API2 optional Native and Back capabilities may be absent; Surface registra
  const f=fixture(t),h=hubFixture(f),provide=h.hub.extensions.provide;h.hub.extensions.provide=(m,factory)=>provide(m,api=>factory({...api,registerNativeWindow:undefined,registerBackHandler:undefined}));
  h.start();const s=f.make();await s.ready;assert.equal(s.mode,'hub');assert.equal(h.runtime.get(manifest.id).nativeWindowAvailable,false);await h.openHoneycomb();assert.equal(panel(f).hidden,false);assert.equal(f.count.active,1);await s.dispose();await h.stop();
 });
+
+for(const mode of ['standalone','native'])test(`Safari IME Escape keyCode229 preserves Director ${mode} window and business`,async t=>{
+ const f=fixture(t);const h=mode==='native'?hubFixture(f):null;h?.start();const s=f.make();await s.ready;
+ if(h){h.preference(true);await h.openNative();}else await f.last.api.showPanel();await flush();const p=panel(f);
+ for(const init of [{key:'Escape',isComposing:true,keyCode:229},{key:'Escape',isComposing:false,keyCode:229}]){
+  const e=new f.host.KeyboardEvent('keydown',{...init,bubbles:true,cancelable:true});p.dispatchEvent(e);await flush();assert.equal(p.hidden,false);assert.equal(e.defaultPrevented,false);
+ }
+ p.dispatchEvent(new f.host.KeyboardEvent('keydown',{key:'Escape',keyCode:27,bubbles:true,cancelable:true}));await flush();assert.equal(p.hidden,true);assert.equal(f.count.active,1);await s.dispose();await h?.stop();
+});

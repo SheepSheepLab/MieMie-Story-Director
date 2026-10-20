@@ -22,6 +22,8 @@ export async function composeRuntime() {
     "  directorRoot.querySelector('[data-director-launch]').remove();");
   once("directorRoot.querySelector('[data-director-close]').onclick=()=>{directorWindow.hidden=true;};",
     "directorRoot.querySelector('[data-director-close]').onclick=()=>api.closePanel(presentationLease);");
+  once("function block(e){if(e.type==='keydown'&&e.key==='Escape'",
+    "function block(e){if(e.type==='keydown'&&(e.isComposing||e.keyCode===229))return;if(e.type==='keydown'&&e.key==='Escape'");
   source=source.replaceAll('host.setTimeout(', 'resources.timeout(').replaceAll('host.clearTimeout(', 'resources.clear(');
   source=source.replaceAll('new host.AbortController()', 'resources.trackController(new host.AbortController())');
   source=source.replaceAll('host.URL.createObjectURL(', 'resources.objectURL(').replaceAll('host.URL.revokeObjectURL(', 'resources.revokeURL(');
