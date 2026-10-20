@@ -1,5 +1,7 @@
 # Owner 确认的实施顺序
 
+> 版本范围：下文为原 0.2.0／早期阶段的完整记录，原人工 Pending 与授权仅对当时版本有效；本 API2 开发候选的当前验收见 [TESTING](TESTING.md#api2-pre-main2026-10-20)，并未获得正式发行或生产授权。
+
 | Phase | 工作 | 当前状态 |
 | --- | --- | --- |
 | 1 | 0.1.22 frozen behavioral baseline | 已通过 Owner Review |

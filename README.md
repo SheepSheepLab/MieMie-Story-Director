@@ -1,10 +1,12 @@
 # 咩咩故事导演 / MieMie Story Director
 
+> **API2 开发分支（未发行）**：本分支适配 Hub 0.9.0 / Extension API2，Package 等机器 Schema 保持 v1；Owner 已批准本分支版本 **0.3.0**，尚未发行。以下既有发行及验收记录保留原范围；当前接入与独立 Gate 见 [Hub API2 开发说明](docs/HUB-API2.md)。
+
 咩咩故事导演让一个副 API 先规划本轮故事，再把大纲交给酒馆原本的主 API 扩写。玩家可以分别配置导演规划、最高指令和主 API 提示词；调试页可以检查实际发送的上下文与交接结果。
 
-当前版本 **0.2.0**，首次正式 MieMie Extension Package v1。Owner 已确认功能、UI 和默认提示词；最新功能基线是已批准的 **0.1.5 实际实现**，包含三条固定默认提示词。0.1.22 继续作为原始实验基线和兼容回归参考。
+当前源码候选 **0.3.0**，Owner 已批准版本号、尚未发行；原正式 0.2.0 为首次 MieMie Extension Package v1。Owner 已确认功能、UI 和默认提示词；最新功能基线是已批准的 **0.1.5 实际实现**，包含三条固定默认提示词。0.1.22 继续作为原始实验基线和兼容回归参考。
 
-自动验证 **569 PASS / 0 FAIL / 0 SKIP**。Desktop manual、Mobile manual、Real API manual 均为 **PENDING — post-release manual smoke test / follow-up**。Owner 已授权在人工 smoke test 前发布；自动检查不能代替人工验收。
+正式 0.2.0 历史自动验证 **569 PASS / 0 FAIL / 0 SKIP**。本 API2 分支新增验收见 [Testing](docs/TESTING.md#api2-pre-main2026-10-20)；下句人工 Pending 属于原发行阶段。Desktop manual、Mobile manual、Real API manual 均为 **PENDING — post-release manual smoke test / follow-up**。Owner 已授权在人工 smoke test 前发布；自动检查不能代替人工验收。
 
 ## 工作方式与适配范围
 
@@ -16,7 +18,7 @@
 
 ## 安装
 
-从 [0.2.0 Release](https://github.com/SheepSheepLab/MieMie-Story-Director/releases/tag/v0.2.0) 获取附件。**酒馆助手直接导入只需一个文件**：
+当前 0.3.0 尚未发布，隔离候选从本分支构建 `build/MieMie-Story-Director-Extension-0.3.0.json`；下面是历史公开版本，从 [0.2.0 Release](https://github.com/SheepSheepLab/MieMie-Story-Director/releases/tag/v0.2.0) 获取附件。**酒馆助手直接导入只需一个文件**：
 
 [MieMie-Story-Director-Extension-0.2.0.json](https://github.com/SheepSheepLab/MieMie-Story-Director/releases/download/v0.2.0/MieMie-Story-Director-Extension-0.2.0.json)
 
@@ -28,7 +30,7 @@
 
 ### MieMie Hub 使用
 
-同时启用兼容的 MieMie Hub 时，脚本通过 Hub 的扩展入口打开；也可按 Hub 设置使用 Shortcut。Hub 退出后恢复独立入口，切换不会新增第二个业务实例。正式 Package 的安装管理协议按 **Hub 0.8.1 / Extension API v1 / Package v1** 验证。
+本分支仅接入 **Hub Runtime API2**，通过蜂窝 Surface 或可选 Native Window 打开，同一 Hub Session 共用一份业务和主面板；Hub 退出后串行清理再恢复 Standalone。正式 0.2.0 的 **Hub 0.8.1 / Extension API v1 / Package v1** 验证保留为原发行记录，不证明本候选已正式上线。
 
 在兼容的 Hub 中使用仓库地址 [SheepSheepLab/MieMie-Story-Director](https://github.com/SheepSheepLab/MieMie-Story-Director) 检查 Package。当前尚未投稿 Hub Catalog；真实酒馆安装与组合使用仍属于发布后人工跟进项目。
 
@@ -68,9 +70,9 @@
 
 ## 兼容性与验证
 
-需要支持预设读取、扩展变量和生成事件的酒馆助手，以及提供相应上下文的 SillyTavern。Hub 协议校验使用锁定的 0.8.1 正式代码，未宣称覆盖任意历史版本。界面需要现代浏览器的 dialog、popover、SVG 等能力。
+需要支持预设读取、扩展变量和生成事件的酒馆助手，以及提供相应上下文的 SillyTavern。当前 Hub 协议校验使用固定 API2 源码夹具；锁定 0.8.1 的测试继续验证历史版本，未进入本分支生产 Runtime。界面需要现代浏览器的 dialog、popover、SVG 等能力。
 
-最终版本的结果和哈希见 [Final RC 报告](docs/FINAL-RC.md)，测试范围见 [测试说明](docs/TESTING.md)。[Phase 5 报告](docs/PHASE-5-REVIEW.md) 仅记录历史 0.1.4，不能用其大小或哈希验证 0.2.0。真实酒馆桌面、Hub 组合与实体手机检查见 [人工验收清单](docs/PREFLIGHT.md)，目前未代为执行。当前范围和后续事项见 [已知限制](docs/KNOWN-LIMITATIONS.md)。
+当前 0.3.0 说明见 [发行草稿](docs/RELEASE-API2-DRAFT.md)，测试与新 hash 见本轮候选回执；历史 0.2.0 的结果和哈希见 [Final RC 报告](docs/FINAL-RC.md)，测试范围见 [测试说明](docs/TESTING.md)。[Phase 5 报告](docs/PHASE-5-REVIEW.md) 仅记录历史 0.1.4，不能用其大小或哈希验证 0.2.0。真实酒馆桌面、Hub 组合与实体手机检查见 [人工验收清单](docs/PREFLIGHT.md)，目前未代为执行。当前范围和后续事项见 [已知限制](docs/KNOWN-LIMITATIONS.md)。
 
 ## 本地构建
 
@@ -92,3 +94,7 @@ npm run check:reproducible
 ## 授权与品牌
 
 软件代码采用 **GPL-3.0-or-later**，见 [LICENSE](LICENSE)。**咩咩角色、Logo、Icon 及指定美术资产不包含在软件 GPL 授权中**，使用范围见 [BRAND.md](BRAND.md) 与 [ASSETS-LICENSE.md](ASSETS-LICENSE.md)。正式 Icon 使用 Owner 确认的扩音器与场记板原始 PNG，透明度保持原样。参考代码和开发依赖说明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+
+## API2 新版候选审核
+
+最低 Runtime 要求、Standalone 与 Package v1 边界见 [新版发行说明草稿](docs/RELEASE-API2-DRAFT.md)。本分支版本已按 Owner 裁定同步为 **0.3.0**，尚未创建 Tag／Release；公开历史下载仍是原版本资产，不替换旧 Asset。当前结果见 [API2 Pre-Main](docs/TESTING.md#api2-pre-main2026-10-20)，生产与正式发行由 Owner 独立决定。

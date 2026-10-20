@@ -1,0 +1,36 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {fixture,hubFixture,flush,manifest} from './helpers/dual-mode.mjs';
+const panel=f=>f.doc.querySelector('[data-director-window]');
+test('API2 actual factory rejects missing/stale Surface leases while preserving business generation',async t=>{const f=fixture(t),h=hubFixture(f);h.start();const s=f.make();await s.ready;assert.equal(h.runtime.get(manifest.id).nativeWindowAvailable,true);assert.equal(f.last.api.showPanel(),false);await h.openHoneycomb();const lease=h.surfaceLease;await f.last.api.closePanel(lease);assert.equal(panel(f).hidden,true);assert.equal(f.last.api.showPanel(lease),false);f.enable();await f.dispatch();assert.equal(f.nativeCalls.length,2);await h.stop();await s.settled();});
+test('API2 Native and Surface share actual Director business state, settings, prompt libraries and one hook',async t=>{const f=fixture(t),s=f.make();await s.ready;f.enable();f.el('key').value='unremembered-key';const h=hubFixture(f);h.start();await s.settled();const instance=f.last.instance,marker=f.host.__meemeStoryPlanner,fetch=f.host.fetch,saved=JSON.stringify(f.stored);assert.equal(h.shortcut,null);for(let i=0;i<4;i++){h.preference(true);await h.openNative();await flush();assert.equal(panel(f).hidden,false);const native=h.nativeLease;await h.openHoneycomb();assert.equal(native.isCurrent(),false);assert.equal(f.last.api.showPanel(native),false);assert.equal(f.last.instance,instance);assert.equal(f.host.__meemeStoryPlanner,marker);assert.equal(f.host.fetch,fetch);h.preference(false);assert.equal(JSON.stringify(f.stored),saved);assert.equal(f.el('key').value,'unremembered-key');}assert.equal(f.count.peak,1);await h.stop();await s.settled();assert.deepEqual(f.errors,[]);});
+test('API2 Native OFF revokes retained callbacks without deactivating Director or clearing diagnostics',async t=>{const f=fixture(t),h=hubFixture(f);h.start();const s=f.make();await s.ready;f.enable();await f.dispatch();h.preference(true);await h.openNative();await flush();const lease=h.nativeLease,api=f.last.api,fetch=f.host.fetch;h.preference(false);const snapshot=panel(f).outerHTML;assert.equal(api.showPanel(lease),false);assert.equal(api.closePanel(lease),false);await flush();assert.equal(panel(f).outerHTML,snapshot);assert.equal(f.host.fetch,fetch);assert.equal(f.count.active,1);await h.stop();await s.settled();});
+test('API2 Native fresh lease establishes geometry for a visible pre-Surface root',async t=>{const f=fixture(t),h=hubFixture(f);h.start();const s=f.make();await s.ready;h.preference(true);panel(f).hidden=false;panel(f).inert=false;panel(f).dataset.surfaceState='closed';await h.openNative();await flush();assert.equal(panel(f).dataset.surfaceState,'open');assert.equal(panel(f).hidden,false);assert.match(panel(f).style.position,/fixed/);const same=panel(f),instance=f.last.instance;await h.openNative();await flush();assert.equal(panel(f),same);assert.equal(f.last.instance,instance);assert.equal(f.count.peak,1);await h.stop();await s.settled();assert.deepEqual(f.errors,[]);});
+
+test('API1 Hub never receives the current Director factory or Shortcut registration',async t=>{
+ const f=fixture(t);let provided=0,shortcut=0;f.host.__MieMieHub={apiVersion:1,extensions:{provide(){provided++;},registerShortcutLauncher(){shortcut++;}}};
+ const s=f.make();await s.ready;assert.equal(s.mode,'standalone');assert.equal(provided,0);assert.equal(shortcut,0);assert.equal(f.count.active,1);await s.dispose();
+});
+test('API2 missing whenDisposed is an explicit error rather than legacy cleanup integration',async t=>{
+ const f=fixture(t);let provided=0;f.host.__MieMieHub={apiVersion:2,extensions:{provide(){provided++;}}};const s=f.make();await s.ready;
+ assert.equal(s.mode,'error');assert.equal(provided,0);assert.equal(f.count.active,0);assert.match(f.errors.join(' '),/whenDisposed/);await s.dispose();
+});
+test('API2 missing required Surface capability is rejected before actual Director activation',async t=>{
+ const f=fixture(t),h=hubFixture(f),provide=h.hub.extensions.provide;h.hub.extensions.provide=(m,factory)=>provide(m,api=>factory({...api,showPanel:undefined}));
+ h.start();const s=f.make();await s.ready;assert.equal(s.mode,'error');assert.equal(f.count.active,0);assert.match(f.errors.join(' '),/required lifecycle\/Surface/);await s.dispose();await h.stop();
+});
+test('API2 failed ready result cannot claim Director integration succeeded',async t=>{
+ const f=fixture(t);f.host.__MieMieHub={apiVersion:2,whenDisposed:Promise.resolve(),extensions:{provide:()=>({ok:true,ready:Promise.resolve({ok:false,error:'ready fixture failed'}),release:async()=>{}})}};
+ const s=f.make();await s.ready;assert.equal(s.mode,'error');assert.equal(f.count.active,0);assert.match(f.errors.join(' '),/ready fixture failed/);await s.dispose();
+});
+test('API2 optional Native and Back capabilities may be absent; Surface registration still works',async t=>{
+ const f=fixture(t),h=hubFixture(f),provide=h.hub.extensions.provide;h.hub.extensions.provide=(m,factory)=>provide(m,api=>factory({...api,registerNativeWindow:undefined,registerBackHandler:undefined}));
+ h.start();const s=f.make();await s.ready;assert.equal(s.mode,'hub');assert.equal(h.runtime.get(manifest.id).nativeWindowAvailable,false);await h.openHoneycomb();assert.equal(panel(f).hidden,false);assert.equal(f.count.active,1);await s.dispose();await h.stop();
+});
+
+for(const mode of ['standalone','native'])test(`Safari IME Escape keyCode229 preserves Director ${mode} window and business`,async t=>{
+ const f=fixture(t);const h=mode==='native'?hubFixture(f):null;h?.start();const s=f.make();await s.ready;
+ if(h){h.preference(true);await h.openNative();}else await f.last.api.showPanel();await flush();const p=panel(f);
+ for(const init of [{key:'Escape',isComposing:true,keyCode:229},{key:'Escape',isComposing:false,keyCode:229}]){
+  const e=new f.host.KeyboardEvent('keydown',{...init,bubbles:true,cancelable:true});p.dispatchEvent(e);await flush();assert.equal(p.hidden,false);assert.equal(e.defaultPrevented,false);
+ }
+ p.dispatchEvent(new f.host.KeyboardEvent('keydown',{key:'Escape',keyCode:27,bubbles:true,cancelable:true}));await flush();assert.equal(p.hidden,true);assert.equal(f.count.active,1);await s.dispose();await h?.stop();
+});

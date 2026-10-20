@@ -1,4 +1,4 @@
-import {createExtensionPackageManager,parseExtensionRepository} from '../fixtures/hub-package-0.8.1/src/extension-packages.js';
+import {createExtensionPackageManager,parseExtensionRepository} from '../fixtures/hub-api2/src/extension-packages.js';
 import {jsonBytes,EXPECTED} from '../../tools/package-v1.mjs';
 import {sha256} from '../../tools/compose-source.mjs';
 // Controlled GitHub HTTP boundary only. The official package manager is unmodified;

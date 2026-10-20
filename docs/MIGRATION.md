@@ -1,5 +1,7 @@
 # 从实验版 0.1.22 迁移
 
+> 版本范围：下文为原 0.2.0／早期阶段的完整记录，原人工 Pending 与授权仅对当时版本有效；本 API2 开发候选的当前验收见 [TESTING](TESTING.md#api2-pre-main2026-10-20)，并未获得正式发行或生产授权。
+
 当前目标为 **0.2.0**，以 Owner 已批准的 0.1.5 实现为功能依据。从正式开发版 0.1.5 升级也使用相同存储、scriptId、交换格式、密钥偏好和预设 ID；没有新的配置转换。真实酒馆持久化检查为 **PENDING — post-release manual smoke test / follow-up**。
 
 旧 0.1.22 没有 Package v1 首行身份，不等于正式包安装。Hub 不自动识别／停用旧 Director，当前工程没有修改 Hub Core 或旧版白名单。

@@ -1,5 +1,7 @@
 # Package v1 / build
 
+> API2 开发分支补充：当前契约见 [HUB-API2.md](HUB-API2.md)。本页既有 API1 / Shortcut / 历史验收描述仅对应原版本；当前适配不恢复该 Runtime，测试边界与机器校验已独立迁移。
+
 当前正式 Package 版本 **0.2.0**，使用 Owner 已批准的同一冻结产物。最新功能基线为 **0.1.5 实际实现**；0.1.22 保留为原始历史参考。此前 0.1.4／0.1.5 的大小、SHA 和可复现记录均不是当前验收依据。冻结数值见 [Final RC 报告](FINAL-RC.md)，正式附件见 [0.2.0 Release](https://github.com/SheepSheepLab/MieMie-Story-Director/releases/tag/v0.2.0)。人工 smoke test 保持发布后 PENDING。
 
 ## 规范来源
@@ -42,9 +44,13 @@ GitHub 实际发布后必须读取真实 Release Asset 的 `digest: sha256:<hash
 
 ## 可重复构建
 
-`npm run check:reproducible` 把当前源文件复制到临时本地 Git snapshot，仅在那里创建一个测试 commit，创建两个 detached clean worktree，各自执行 `npm ci --ignore-scripts --offline` → build → validate。前后工作树均应干净、四个文件逐字节一致；原仓库和历史不变。需要 npm 缓存已包含 lockfile 依赖；无缓存时先正常安装依赖再运行。
+`npm run check:reproducible` 把当前源文件分别复制到两个独立临时源快照，不创建测试 commit 或更改 Git 身份，各自执行 `npm ci --ignore-scripts --offline` → build → validate。前后工作树均应干净、四个文件逐字节一致；原仓库和历史不变。需要 npm 缓存已包含 lockfile 依赖；无缓存时先正常安装依赖再运行。
 
 Final RC 阶段使用未提交源快照进行可复现检查；正式首发还针对实际 Release commit 执行两次独立 clean build，并要求与原冻结产物一致。报告保存在本地 `review/`；review、build 和 node_modules 均被忽略，不加入公开源码。最终发行附件只使用当前 SHA256SUMS 列出的文件，旧版本文件保留作本地历史记录。
 
 
 > 隐私历史迁移说明：文中涉及的提交标识已对应至迁移后历史；历史测试时间、结论及贡献归属保持原意，不表示重新执行了当时的验收。原始记录由维护者受保护保存。
+
+## 本分支 API2 构建合同
+
+当前机器声明来自根 `manifest.json`：Schema1、API2、hubApi 2/2。Package、Metadata、Build Identity 仍为 Schema1；Build Identity 不含 API 版本。生产包验证调用固定 API2 Hub Package 夹具（`tests/fixtures/hub-api2`），上方 0.8.1 夹具继续保留为原阶段来源。构建仍由 `tools/compose-runtime.mjs` 的唯一匹配规则推导 Runtime，再由正式入口与打包器生成；不能手改生成文件或重录业务 golden。当前包两层 hash 和真实宿主范围见 [TESTING](TESTING.md#api2-pre-main2026-10-20)。Owner 已批准产品版本 0.3.0，当前仍为隔离审核候选；附件名和机器版本由正式构建器同步生成，禁止替换已发布 0.2.0 Asset。

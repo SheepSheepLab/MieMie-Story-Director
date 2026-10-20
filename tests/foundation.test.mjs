@@ -38,8 +38,8 @@ test('foundation / display identity matches manifest without renaming historical
   assert.equal(DIRECTOR_IDENTITIES.dock, 'miemie_story_director_dock_v1');
 });
 test('foundation / manifest declares API v1 and uses real local files', async () => {
-  assert.equal(manifest.schemaVersion, 1);assert.equal(manifest.apiVersion, 1);
-  assert.deepEqual(manifest.hubApi, {min: 1, max: 1});assert.match(manifest.id, /^[a-z0-9][a-z0-9._-]{1,79}$/);
+  assert.equal(manifest.schemaVersion, 1);assert.equal(manifest.apiVersion, 2);
+  assert.deepEqual(manifest.hubApi, {min: 2, max: 2});assert.match(manifest.id, /^[a-z0-9][a-z0-9._-]{1,79}$/);
   for (const key of ['name', 'version', 'author', 'description', 'entry', 'repository', 'license']) assert.ok(manifest[key]);
   assert.ok((await stat(new URL(manifest.entry, projectRoot))).isFile());
   assert.ok((await stat(new URL(manifest.icon, projectRoot))).isFile());
@@ -47,7 +47,7 @@ test('foundation / manifest declares API v1 and uses real local files', async ()
 test('foundation / current version is consistent while historical baseline stays 0.1.22', async () => {
   const dependencies=JSON.parse(await read('package-lock.json'));
   const template=JSON.parse(await read('packaging/script-template.json'));
-  assert.equal(DIRECTOR_PRODUCT.version,'0.2.0');
+  assert.equal(DIRECTOR_PRODUCT.version,'0.3.0');
   for(const value of [pkg.version,manifest.version,dependencies.version,dependencies.packages[''].version])assert.equal(value,DIRECTOR_PRODUCT.version);
   assert.equal(template.name,`${DIRECTOR_PRODUCT.name} ${DIRECTOR_PRODUCT.version}`);
   assert.match(DIRECTOR_PRODUCT.version,/^\d+\.\d+\.\d+$/);
