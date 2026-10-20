@@ -1,5 +1,7 @@
 # 当前范围与后续检查
 
+> 版本范围：下文为原 0.2.0／早期阶段的完整记录，原人工 Pending 与授权仅对当时版本有效；本 API2 开发候选的当前验收见 [TESTING](TESTING.md#api2-pre-main2026-10-20)，并未获得正式发行或生产授权。
+
 当前为 0.2.0，功能与 UI 保持已批准的 0.1.5。真实酒馆 Desktop／Mobile／Real API 状态均为 **PENDING — post-release manual smoke test / follow-up**；Owner 已授权先发布，不声称人工验收通过。
 
 - 当前适配咩咩预设故事模式；功能基线为 5.8.2 所用结构。群聊、其他预设、续写／静默／代替用户生成不在当前导演规划范围。

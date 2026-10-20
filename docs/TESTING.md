@@ -117,3 +117,29 @@ Package tests 71 项，migration/actual packaged entry tests 8 项。覆盖两�
 ## 正式发布前复核
 
 Owner 授权使用冻结 0.2.0 正式发布后，重新运行 516 Node 与 53 Chromium 检查，全部通过；产物两层 SHA 保持 Final RC 冻结值。正式首发须另行核对实际 commit 的干净构建、GitHub 真实 digest、公开下载与原版 Hub Package v1 校验。本地记录保存在被忽略的 `review/release-0.2.0/`。Desktop／Mobile／Real API manual 均为 PENDING，作为 post-release manual smoke test / follow-up，不作为自动 PASS。
+
+## API2 Pre-Main（2026-10-20）
+
+原Phase1–5、0.1.22／0.1.5／0.2.0数字与人工Pending保留；本节不追溯改历史结论。实测源码 `b1e552667bd4080954385fa96797a46b59482ab1`；产物 `MieMie-Story-Director-Extension-0.2.0.json`，完整附件 SHA-256 `592b9c078c988aca4dfa8ada758a7fd3e6b29540f98778d61cc558dd032504f0`。解析后 content SHA-256 `443e10acbe2a00fa388de9992e9b9a8ea29938f718798b78e00ae6dac98266d8`。 本分支内部版本暂留，不能替换已发布同版资产。
+
+**527 Node PASS／0 FAIL／0 SKIP**。`check:source`、`check:runtime`、`check:entry`、`build`、`check:package`、`check:reproducible`通过；[Linux regression](https://github.com/SheepSheepLab/MieMie-Story-Director/actions/runs/39350626248)成功。
+
+| 领域 | 当前验证边界 |
+| --- | --- |
+| 冻结业务 | 0.1.22原样还原／golden、0.1.5默认原文与保护、主副messages、规划／filter／story_scene／原位置交接、三库、配置、取消和异常恢复 |
+| 生成一致性 | compose-runtime唯一匹配规则、generated Runtime、entry与实际Package编译内容一致；不手改生成文件、不重录golden |
+| API2 | 当前生产Adapter与必需合同失败、可选能力、Source／whenDisposed、双入口单实例、Native／Surface Lease、OFF／清理、迟到结果拒绝 |
+| Native | 自有几何／动画／drag／菜单／弹层／焦点与Escape；无产品专属Hub Core补丁 |
+| IME | 生成源与自有UI按isComposing／keyCode229保护；捕获事件和浏览器回归，不冒充本产品真实OS输入法全链 |
+| 真实桌面 | ST两版本×Chromium／Safari每组9项；与其他两款同Hub共存每浏览器7项；合成模型响应，不是实际服务商验收 |
+| Package | Schema1、双hash、空data、正式入口、隔离Catalog／Relay与真实Helper保存／运行版本分别确认；生产Online仍Pending |
+
+真实环境：macOS 26.6（25G72）、Chromium 151.0.7922.34、Apple Safari 26.6，ST 1.18.0／1.19.0、Tavern Helper 4.11.3。ST 1.19 源码为 `7e8663cd9c184a550b37238218bdd32c6efc68e9`；1.18 测试副本无 Git 元数据，按完整文件 hash 锁定，不能编造 commit。公开 Default 派生测试数据、专用 dataRoot 与本机合成模型响应；未调用真实外部模型供应商。
+
+保留D-001／002／003原已知业务边界，不因为同Hub界面共存通过就宣称所有Director＋Polisher请求改写顺序已解决。实际外部模型质量、物理设备、完整第三方矩阵和Owner人工体验不由这些结果推导。
+
+Runtime API2 与 Managed Package v1 为两道 Gate：开发候选 Runtime／Native 已测范围 PASS，隔离机器包流程 PASS；**生产 Registry API2、生产 Origin／OAuth、正式新版本及 Assets、正式在线安装更新、物理移动 Safari、真实外部模型服务及 Owner 手工验收仍分别 Pending**。Standalone、Package 身份／完整性与用户数据保护继续保留，不增加旧 Hub Runtime 兼容义务。
+
+原始证据为 **Owner 私有审核材料，尚未公开下载**：`MieMie-Hub-0.9.0-Final-Pre-Main-Review.zip`，SHA-256 `8c06fdad93ff68c5be5699b742d98e4849000b532eaa072bc3279165ee473d73`。包内 `evidence/FINAL-INTEGRATION-LOCK.json`、`FINAL-ACCEPTANCE-RESULTS.json`、`FINAL-BUILD-AUDIT.json`、`FINAL-CI-RESULTS.json` 关联真实源码、产物和日志；不以本机路径充当公共证据。以下是该阶段的既有执行记录，本轮文档维护不声称重新运行 Safari 或宿主；本轮新 HEAD 的本地／Linux CI 回执另随 Owner 审核包交付。
+
+包内 `final-MieMie-Story-Director-test.log`、构建与source/runtime/entry/reproducibility日志、`portable-*-MieMie-Story-Director.json`、`D-managed-host.json`及失败历史分别保存。真实OS拼音只在Polisher测过，本产品未移用该通过结论；原0.2.0正式Assets仍保持历史字节。

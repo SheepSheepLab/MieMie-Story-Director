@@ -74,3 +74,11 @@ that case. Their capability checks do not dispatch an API1 implementation.
 Standalone uses the extension's own close route and data, independently of Hub.
 Historical API1 fixtures and published packages remain evidence only, outside
 the current production build closure.
+
+## 故事导演的入口、生成源与请求所有权
+
+`entry.js → startDirector → createDirectorDualMode（src/adapters/dual-mode.js）→ trackedFactory → createOfficialDirectorExtension` 仅接入API2。Source ready/release、whenDisposed及必需Surface／清理方法缺失时报错；可选Native／Back检测不分派旧Runtime。`src/adapters/hub-api2.js` 以同一instance.open路由NativeLease，mount/open/release都同步；动画由自身异步任务在Lease有效时完成。
+
+Standalone→Hub先捕获私有页面状态，撤销资源和请求，等最终清理后remount；同Hub Surface／Native不重建业务。三套提示词库、接口字段、页面、未记住Key和脱敏历史私有交接，进行中的generation／READY不复制。主副API、唯一story_scene、大纲原位交接和active cancel继续使用已批准业务。
+
+`tools/compose-source.mjs` 还原原始0.1.22；`tools/compose-runtime.mjs` 通过唯一匹配patch生成business-runtime.generated.js，再组合entry。IME修复位于生成规则及自有输入层，不能手改生成Runtime跳过源。默认提示词以已批准0.1.5为当前功能依据，旧golden／Deferred边界不改写。当前执行记录见 [TESTING](TESTING.md#api2-pre-main2026-10-20)。

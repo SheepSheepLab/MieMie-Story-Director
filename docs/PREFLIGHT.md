@@ -1,5 +1,7 @@
 # 真实酒馆人工验收 Checklist
 
+> 版本范围：下文为原 0.2.0／早期阶段的完整记录，原人工 Pending 与授权仅对当时版本有效；本 API2 开发候选的当前验收见 [TESTING](TESTING.md#api2-pre-main2026-10-20)，并未获得正式发行或生产授权。
+
 状态：**PENDING — post-release manual smoke test / follow-up**。目标版本 **0.2.0**，功能依据是 Owner 已批准的 0.1.5。Owner 已明确授权不等待人工验收而发布；Desktop manual、Mobile manual、Real API manual 均为 PENDING，不因发布或自动测试通过而改成 PASS。记录验收日期、系统／浏览器、酒馆与酒馆助手版本、Hub版本、构建 SHA、所用预设和结果；使用测试聊天，避免把私人上下文附在公开报告。
 
 ## Desktop / Standalone

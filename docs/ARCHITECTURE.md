@@ -165,3 +165,7 @@ Ordinary rows retain the original handlers and prepend semantics. Owned listener
 and observers are removed through existing lifecycle resources. The frozen
 Core, library/runtime derivation, request pipeline and comparison factory remain
 unchanged, so historical golden tests still exercise their original behavior.
+
+## 当前 API2 入口与冻结边界
+
+`entry.js → startDirector → createDirectorDualMode` 仅采用 API2 Hub；`trackedFactory` 检查 signal、onCleanup、attachPanel、showPanel、closePanel，Source 必须提供 ready/release，Hub 必须提供 whenDisposed。Native Window 与 Back 为可选能力，不以缺少可选方法判断整个 Runtime 失败。Native bridge 只分派展示 Lease，不复制业务实现；正式 UI、默认提示词、主副 API 交接、D-001／002／003 和冻结来源继续按原职责维护。生成链和当前验证见 [HUB-API2](HUB-API2.md) 与 [TESTING](TESTING.md#api2-pre-main2026-10-20)。原 Phase 1–5 叙述与当时结论完整保留。
