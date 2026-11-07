@@ -6,7 +6,7 @@ import {projectRoot,sha256} from './compose-source.mjs';
 import {composeDualMode} from './compose-dual-mode.mjs';
 import {EXTENSION_PACKAGE_LIMIT,EXTENSION_PACKAGE_METADATA,EXTENSION_PACKAGE_IDENTITY_PREFIX,
   validateExtensionManifest,validateExtensionPackageMetadata,validateExtensionPackage,parseExtensionBuildIdentity}
-  from '../tests/fixtures/hub-package-0.8.1/src/extension-packages.js';
+  from '../tests/fixtures/hub-api2/src/extension-packages.js';
 
 export const PACKAGE_REFERENCE='36aaec46282e67bd01b87035165977a40d23acc9';
 export const EXPECTED=Object.freeze({productId:'miemie.story-director',scriptId:'fc2d2ead-68af-43fc-904d-a72ece07277b',
@@ -53,6 +53,7 @@ export async function createBundle(input){
   await verifyReferences();
   const {manifest,pkg,lock,template,baseline,icon,runtime,product,identities}=input;
   validateExtensionManifest(manifest,EXPECTED.repository);
+  if(manifest.apiVersion!==2||manifest.hubApi?.min!==2||manifest.hubApi?.max!==2)fail('Expected API2 declaration');
   for(const[key,value]of Object.entries({id:EXPECTED.productId,name:EXPECTED.name,repository:EXPECTED.repository,entry:EXPECTED.entry,icon:EXPECTED.icon}))same(manifest[key],value,'Manifest identity/entry mismatch: '+key);
   same(manifest.contributes?.launcher?.title,EXPECTED.launcherName,'Launcher name mismatch');same(manifest.license,'GPL-3.0-or-later','License mismatch');
   for(const value of [pkg.version,lock.version,lock.packages?.['']?.version,product.version])same(value,manifest.version,'Version mismatch');

@@ -22,7 +22,7 @@ export function createDirectorExtension(api,{host,helpers,assets={},presentation
         return true;
       } catch(error) {void instance.deactivate()?.catch(()=>{});throw error;}
     },
-    open(){return tool&&!resources.closed?tool.open():false;},
+    open(surfaceLease){return tool&&!resources.closed?tool.open(surfaceLease):false;},
     captureSession(){return tool?.captureSession()||null;},
     restoreSession(state){tool?.restoreSession(state);},
     deactivate(){

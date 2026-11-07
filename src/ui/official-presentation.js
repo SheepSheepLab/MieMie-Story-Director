@@ -128,7 +128,7 @@ export function mountOfficialDirectorPresentation({panel:window,host,resources,i
   // Escape dismisses this product's top-layer menu before reaching the host's
   // window-close shortcut; this is UI focus/dismissal only.
   resources.listen(doc,'keydown',e=>{
-    if(e.key!=='Escape')return;
+    if(e.key!=='Escape'||e.isComposing||e.keyCode===229)return;
     const menu=[...panel.querySelectorAll('.sp-entry-menu')].find(m=>m.matches(':popover-open'));
     if(menu){e.preventDefault();e.stopImmediatePropagation();menu.close();}
   },true);

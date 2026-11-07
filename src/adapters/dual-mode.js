@@ -1,8 +1,9 @@
+import {createAPI2NativeBridge} from './hub-api2.js';
 // Adapted from MieMie Polisher v1.2.1 (5a0a5cf9), GPL-3.0-or-later.
 import {DIRECTOR_PRODUCT} from '../../product-identity.js';
 import {createDirectorNativeLauncher} from '../ui/native-launcher.js';
-// Optional cooperative launcher protocol v1. No Hub code or polling is needed.
-// Hub presence suppresses Standalone; only Hub may mount an opt-in Shortcut.
+// API2 source lifecycle; the product retains its native window implementation.
+// API2 Hub presence suppresses Standalone; Native entries use its opt-in ownership contract.
 export function createDirectorDualMode({host, frame, manifest, factory, icon, launcherStyles='', onError = error => console.warn('['+DIRECTOR_PRODUCT.englishName+']', error)}) {
   const marker = '__MieMieDirectorSource';
   const previousSource = host[marker];
@@ -17,7 +18,7 @@ export function createDirectorDualMode({host, frame, manifest, factory, icon, la
   function report(error) { try { onError(error); } catch (_) {} }
   function currentHub() {
     const hub = host.__MieMieHub;
-    return hub?.apiVersion === 1 && typeof hub.extensions?.provide === 'function' ? hub : null;
+    return hub?.apiVersion === 2 && typeof hub.extensions?.provide === 'function' ? hub : null;
   }
   function removeButton() {native?.dispose();native=null;}
   function capture(instance) { if (!disposed) handoff = instance?.captureSession?.() || null; }
@@ -46,7 +47,7 @@ export function createDirectorDualMode({host, frame, manifest, factory, icon, la
         session.panel = panel; hide();
         const back = panel.querySelector('[data-director-close]');
         if (back) { back.textContent = '收起'; back.onclick = () => api.closePanel(); cleanups.push(() => {back.onclick = null;}); }
-        const key = event => { if (event.key === 'Escape' && !event.defaultPrevented && !doc.querySelector('dialog[open]') && !panel.hidden) api.closePanel(); };
+        const key = event => { if (event.key === 'Escape' && !event.isComposing && event.keyCode !== 229 && !event.defaultPrevented && !doc.querySelector('dialog[open]') && !panel.hidden) api.closePanel(); };
         doc.addEventListener('keydown', key); cleanups.push(() => doc.removeEventListener('keydown', key));
         return true;
       },
@@ -65,17 +66,20 @@ export function createDirectorDualMode({host, frame, manifest, factory, icon, la
     const previous = attached; attached = null; removeButton();
     if (!previous) return;
     await previous.lease.ready;
-    await previous.lease.release?.();
-    // Modern Hub resolves after full runtime cleanup. The final cleanup callback
-    // below also covers older versions whose disposed event fires early.
-    if (previous.hub.whenDisposed && host.__MieMieHub !== previous.hub) await previous.hub.whenDisposed;
+    await previous.lease.release();
+    // API2 disposal notifies synchronously; wait for its asynchronous completion.
+    if (host.__MieMieHub !== previous.hub) await previous.hub.whenDisposed;
     await Promise.all([...previous.sessions].map(session => session.finished));
   }
   async function attachHub(hub) {
+    if (typeof hub.whenDisposed?.then !== 'function') throw Error('Hub API2 requires whenDisposed.');
     await stopStandalone();
     if (disposed || currentHub() !== hub) return;
     const connection = {hub, sessions: new Set(), lease: null};
     function trackedFactory(api) {
+      if (!api?.signal || typeof api.signal.addEventListener !== 'function' ||
+          ['onCleanup','attachPanel','showPanel','closePanel'].some(key => typeof api[key] !== 'function'))
+        throw Error('Hub API2 is missing required lifecycle/Surface capabilities.');
       let complete, instance;
       const session = {finished: new Promise(resolve => { complete = resolve; })}; connection.sessions.add(session);
       // This listener precedes the business resource abort listener, so it can
@@ -84,19 +88,25 @@ export function createDirectorDualMode({host, frame, manifest, factory, icon, la
       api.signal.addEventListener('abort', abort, {once: true});
       // Registered first, therefore called last by the Runtime's LIFO cleanup.
       api.onCleanup(() => {api.signal.removeEventListener('abort', abort); connection.sessions.delete(session); complete();});
-      instance = factory(api);
+      const bridge = typeof api.registerNativeWindow === 'function' ? createAPI2NativeBridge(api, {
+        createLauncher: open => createDirectorNativeLauncher({host,icon,styles:launcherStyles,mode:'native',open,onError:report}), onError:report,
+      }) : null;
+      instance = factory(bridge?.api || api);
       return {...instance, async activate() {
         await instance.activate?.();
         if (!api.signal.aborted) {
           restore(instance);
-          if(typeof api.registerShortcutLauncher==='function')api.registerShortcutLauncher({mount:({open})=>createDirectorNativeLauncher({host,icon,styles:launcherStyles,mode:'shortcut',open,onError:report})});
+          bridge?.register(instance);
         }
       }};
     }
     const lease = hub.extensions.provide(manifest, trackedFactory);
     if (!lease.ok) {mode = 'error'; throw Error(lease.error || 'Hub 注册失败。');}
-    connection.lease = lease; attached = connection; mode = 'hub';
-    await lease.ready;
+    if (typeof lease.ready?.then !== 'function' || typeof lease.release !== 'function') throw Error('Hub API2 requires Source ready/release.');
+    connection.lease = lease; attached = connection;
+    const result = await lease.ready;
+    if (result?.ok === false) throw Error(result.error || 'Hub API2 registration failed.');
+    mode = 'hub';
 
   }
   async function reconcile() {

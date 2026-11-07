@@ -1,6 +1,6 @@
 {
   "name": "miemie-story-director",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "description": "MieMie Story Director: frozen 0.1.22 behavior with factory lifecycle and serialized Hub / Standalone ownership.",

@@ -53,7 +53,7 @@ test('New lifecycle restores saved settings/libraries and remembered key unchang
 });
 test('Hub only uses factory/attachPanel and no standalone entry',async t=>{
   const f=fixture(t),h=hubFixture(f);h.start();const s=f.make();await s.ready;unique(f);assert.equal(s.mode,'hub');assert.equal(orb(f),null);assert.equal(h.panels.size,1);
-  await h.openHoneycomb();assert.equal(panel(f).hidden,false);assert.equal(h.motion.honeycomb,1);assert.equal(h.motion.native,0);await f.last.api.closePanel();assert.equal(panel(f).hidden,true);await h.stop();await s.settled();
+  await h.openHoneycomb();assert.equal(panel(f).hidden,false);assert.equal(h.motion.honeycomb,1);assert.equal(h.motion.native,0);await f.last.api.closePanel(h.surfaceLease);assert.equal(panel(f).hidden,true);await h.stop();await s.settled();
 });
 test('Standalone → Hub completes teardown before mounting Hub',async t=>{
   const f=fixture(t),s=f.make();await s.ready;const old=panel(f),h=hubFixture(f);h.start();await s.settled();unique(f);
@@ -125,8 +125,8 @@ test('Source replacement waits for asynchronous teardown',async t=>{
   let finish,delay=false;const f=fixture(t,{deactivateDelay:()=>delay?new Promise(r=>finish=r):null}),old=f.make();await old.ready;delay=true;
   const stopping=old.dispose(),next=f.make();await flush();assert.equal(f.count.activated,1);finish();delay=false;await stopping;await next.ready;unique(f);assert.equal(next.mode,'standalone');
 });
-test('Hub loss waits for old Runtime final cleanup even without whenDisposed',async t=>{
-  let finish,delay=false;const f=fixture(t,{deactivateDelay:()=>delay?new Promise(r=>finish=r):null}),h=hubFixture(f,{legacy:true});h.start();const s=f.make();await s.ready;delay=true;
+test('API2 Hub disposal waits for asynchronous Runtime completion before Standalone',async t=>{
+  let finish,delay=false;const f=fixture(t,{deactivateDelay:()=>delay?new Promise(r=>finish=r):null}),h=hubFixture(f);h.start();const s=f.make();await s.ready;delay=true;
   const stopping=h.stop();await flush();assert.equal(f.count.activated,1);finish();delay=false;await stopping;await s.settled();unique(f);assert.equal(s.mode,'standalone');
 });
 for(const event of ['pagehide','unload'])test(event+' removes source listeners; later Hub events cannot reactivate',async t=>{

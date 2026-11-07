@@ -1,7 +1,7 @@
 {
   "type": "script",
   "enabled": true,
-  "name": "咩咩故事导演 0.2.0",
+  "name": "咩咩故事导演 0.3.0",
   "id": "fc2d2ead-68af-43fc-904d-a72ece07277b",
   "info": "咩咩故事导演（MieMie Story Director）。仅适配咩咩预设故事模式。首次安装前请停用旧 0.1.22；支持独立使用与 MieMie Hub。调试记录可能包含完整聊天上下文。 代码采用 GPL-3.0-or-later；咩咩品牌及指定美术资产不包含在软件 GPL 授权中，详见仓库许可说明。",
   "button": {

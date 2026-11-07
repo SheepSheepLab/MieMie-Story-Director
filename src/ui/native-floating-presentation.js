@@ -1,5 +1,5 @@
 // Adapted from MieMie Polisher v1.2.1 (5a0a5cf9), GPL-3.0-or-later.
-// One external-orb presentation for Standalone and Hub Shortcut. Navigation,
+// One external-orb presentation for Standalone and API2 Native Window. Navigation,
 // hidden/inert state and business lifetime belong to the caller, never this module.
 export function createNativeFloatingPresentation({host,orb,bounds}) {
  const doc=host.document,animations=new Set(),cleanups=new Set();

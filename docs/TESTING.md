@@ -1,5 +1,7 @@
 # Phase 1–5 Test Plan 与覆盖
 
+> API2 开发分支补充：当前契约见 [HUB-API2.md](HUB-API2.md)。本页既有 API1 / Shortcut / 历史验收描述仅对应原版本；当前适配不恢复该 Runtime，测试边界与机器校验已独立迁移。
+
 基于 Owner 原始 0.1.22。Node >=22；安装固定开发依赖后，所有测试离线运行。运行 `npm ci --ignore-scripts`，再执行 `npm run check:source`、`npm run check:runtime`、`npm run check:entry` 与 `npm test`。
 
 ## 测试分层
@@ -115,3 +117,41 @@ Package tests 71 项，migration/actual packaged entry tests 8 项。覆盖两�
 ## 正式发布前复核
 
 Owner 授权使用冻结 0.2.0 正式发布后，重新运行 516 Node 与 53 Chromium 检查，全部通过；产物两层 SHA 保持 Final RC 冻结值。正式首发须另行核对实际 commit 的干净构建、GitHub 真实 digest、公开下载与原版 Hub Package v1 校验。本地记录保存在被忽略的 `review/release-0.2.0/`。Desktop／Mobile／Real API manual 均为 PENDING，作为 post-release manual smoke test / follow-up，不作为自动 PASS。
+
+## API2 Pre-Main（2026-10-20）
+
+原Phase1–5、0.1.22／0.1.5／0.2.0数字与人工Pending保留；本节不追溯改历史结论。实测源码 `b1e552667bd4080954385fa96797a46b59482ab1`；产物 `MieMie-Story-Director-Extension-0.2.0.json`，完整附件 SHA-256 `592b9c078c988aca4dfa8ada758a7fd3e6b29540f98778d61cc558dd032504f0`。解析后 content SHA-256 `443e10acbe2a00fa388de9992e9b9a8ea29938f718798b78e00ae6dac98266d8`。 本分支内部版本暂留，不能替换已发布同版资产。
+
+**527 Node PASS／0 FAIL／0 SKIP**。`check:source`、`check:runtime`、`check:entry`、`build`、`check:package`、`check:reproducible`通过；[Linux regression](https://github.com/SheepSheepLab/MieMie-Story-Director/actions/runs/39350626248)成功。
+
+| 领域 | 当前验证边界 |
+| --- | --- |
+| 冻结业务 | 0.1.22原样还原／golden、0.1.5默认原文与保护、主副messages、规划／filter／story_scene／原位置交接、三库、配置、取消和异常恢复 |
+| 生成一致性 | compose-runtime唯一匹配规则、generated Runtime、entry与实际Package编译内容一致；不手改生成文件、不重录golden |
+| API2 | 当前生产Adapter与必需合同失败、可选能力、Source／whenDisposed、双入口单实例、Native／Surface Lease、OFF／清理、迟到结果拒绝 |
+| Native | 自有几何／动画／drag／菜单／弹层／焦点与Escape；无产品专属Hub Core补丁 |
+| IME | 生成源与自有UI按isComposing／keyCode229保护；捕获事件和浏览器回归，不冒充本产品真实OS输入法全链 |
+| 真实桌面 | ST两版本×Chromium／Safari每组9项；与其他两款同Hub共存每浏览器7项；合成模型响应，不是实际服务商验收 |
+| Package | Schema1、双hash、空data、正式入口、隔离Catalog／Relay与真实Helper保存／运行版本分别确认；生产Online仍Pending |
+
+真实环境：macOS 26.6（25G72）、Chromium 151.0.7922.34、Apple Safari 26.6，ST 1.18.0／1.19.0、Tavern Helper 4.11.3。ST 1.19 源码为 `7e8663cd9c184a550b37238218bdd32c6efc68e9`；1.18 测试副本无 Git 元数据，按完整文件 hash 锁定，不能编造 commit。公开 Default 派生测试数据、专用 dataRoot 与本机合成模型响应；未调用真实外部模型供应商。
+
+保留D-001／002／003原已知业务边界，不因为同Hub界面共存通过就宣称所有Director＋Polisher请求改写顺序已解决。实际外部模型质量、物理设备、完整第三方矩阵和Owner人工体验不由这些结果推导。
+
+Runtime API2 与 Managed Package v1 为两道 Gate：开发候选 Runtime／Native 已测范围 PASS，隔离机器包流程 PASS；**生产 Registry API2、生产 Origin／OAuth、正式新版本及 Assets、正式在线安装更新、物理移动 Safari、真实外部模型服务及 Owner 手工验收仍分别 Pending**。Standalone、Package 身份／完整性与用户数据保护继续保留，不增加旧 Hub Runtime 兼容义务。
+
+原始证据为 **Owner 私有审核材料，尚未公开下载**：`MieMie-Hub-0.9.0-Final-Pre-Main-Review.zip`，SHA-256 `8c06fdad93ff68c5be5699b742d98e4849000b532eaa072bc3279165ee473d73`。包内 `evidence/FINAL-INTEGRATION-LOCK.json`、`FINAL-ACCEPTANCE-RESULTS.json`、`FINAL-BUILD-AUDIT.json`、`FINAL-CI-RESULTS.json` 关联真实源码、产物和日志；不以本机路径充当公共证据。以下是该阶段的既有执行记录，本轮文档维护不声称重新运行 Safari 或宿主；本轮新 HEAD 的本地／Linux CI 回执另随 Owner 审核包交付。
+
+包内 `final-MieMie-Story-Director-test.log`、构建与source/runtime/entry/reproducibility日志、`portable-*-MieMie-Story-Director.json`、`D-managed-host.json`及失败历史分别保存。真实OS拼音只在Polisher测过，本产品未移用该通过结论；原0.2.0正式Assets仍保持历史字节。
+
+## 产品版本对齐候选（2026-10-20）
+
+Owner 已批准本版 **0.3.0**，当前仍为未发行候选。本节追加独立新执行记录；上方旧产品版本、Pre-Main hash、历史Golden、Safari／OS输入法与手工结论保留原对象范围，不追溯改写。
+
+本轮最终版本的 `npm test`：**527 PASS／0 FAIL／0 SKIP**。正式构建连续两次产物逐字一致；check:source／runtime／entry／package／reproducible 均通过，历史0.1.22及已批准业务Golden不改。 当前附件 `MieMie-Story-Director-Extension-0.3.0.json`，完整附件 SHA-256 `458b51fe7144396af8c100f316fee822559f9e1bb77631dcf9fcd92c15ac9640`；解析后 content SHA-256 `0480ab11177ab96ce0b010f0c3f0e14ad6908ac1788a26f59f971f46ca9a0d7e`。最终签名 HEAD 的空目录锁文件重建、Linux CI及原始日志单独随 Owner 本轮审核包交付。
+
+Manifest Schema1、Package1、Metadata1、Build Identity1 均保持；Manifest 为 API2／hubApi2–2，Build Identity 不增加 apiVersion。新版只要求 Hub Runtime API2，Standalone、数据键和原业务模型不变。本轮当前版本断言与UI文字随版本更新，历史夹具及已发布资产原样保留；生成脚本在显式产品版本归一化后与进入本轮的API2候选逐字一致，没有新增旧Runtime或兼容层。
+
+Runtime 与 Managed Package 分开记录：实际最终脚本的API2注册路径审计通过，未含API1注册或Shortcut调用；三款实际新字节的隔离机器流程涵盖首次安装、从前一API2开发候选更新、保存回读、同实例／用户名称／data／文件夹／排序／启用保持、恢复、取消与物理卸载。Node合成GitHub／saved tree不计为真实宿主或生产；本轮真实隔离Tavern及浏览器业务结果另见 Owner 回执。既有公开API1包仅在安全管理规则内识别，不恢复API1 Runtime；不把旧Hub向后兼容列为新版发行Gate。
+
+本节不声称重新执行真实Safari／OS输入法／OS动画设置或物理移动设备。生产 Registry API2、生产Origin／OAuth、正式新Assets及真实在线Managed、物理移动Safari、真实外部模型供应商、Owner手工验收及正式发行授权仍独立Pending。

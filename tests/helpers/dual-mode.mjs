@@ -1,3 +1,4 @@
+import {createAPI2HubFixture} from './api2-hub.mjs';
 import {JSDOM} from 'jsdom';
 import {readFileSync} from 'node:fs';
 import {createDirectorExtension} from '../../src/director.js';
@@ -50,38 +51,7 @@ export function fixture(t,options={}) {
     get last(){return last;},get stored(){return stored;},setReply(fn){reply=fn;},get source(){return source;}};
 }
 
-// Execute unmodified official 0.8.1 Runtime and the actual provide/ready/release
-// bootstrap block. Only its UI Surface boundary is represented by a DOM fixture.
-const runtimeSource=read('../fixtures/hub-0.8.1/extension-runtime.js').replace(/^import .*;$/gm,'').replace('export function ','function ');
-const createExtensionRuntime=new Function('HUB_PRODUCT',runtimeSource+'\nreturn createExtensionRuntime;')({englishName:'MieMie Hub'});
-const bootstrapSource=read('../fixtures/hub-0.8.1/bootstrap.js');
-const protocolBlock=bootstrapSource.slice(0,bootstrapSource.indexOf('// Capture the iframe-bound API'));
-export function hubFixture(f,{disabled=false,legacy=false}={}) {
-  const {host,doc}=f,panels=new Map(),providers=new Map();let shortcut=null,shortcutEnabled=false,origin='honeycomb',motion={honeycomb:0,native:0},closed=false;
-  if(disabled)host.localStorage.setItem('miemie_hub_extensions_v1',JSON.stringify({version:1,extensions:{[manifest.id]:{registered:true,enabled:false}}}));
-  const ui={refresh(){},runtimeChanged(){},report(e){f.errors.push(e);},closeMessage(){},
-    attachPanel(id,_title,panel,presentation){
-      if(panel.ownerDocument!==doc||!panel.isConnected||panels.has(id))throw Error('Invalid panel');
-      panel.hidden=true;panel.inert=true;panels.set(id,{panel,presentation});f.count.attached++;
-      return ()=>{panel.hidden=true;panel.inert=true;panels.delete(id);};
-    },
-    registerShortcut(id,mount){providers.set(id,mount);return ()=>{shortcut?.dispose();shortcut=null;providers.delete(id);};},
-    async showPanel(id){const item=panels.get(id);if(!item)return false;const {panel}=item;panel.hidden=false;panel.inert=true;
-      if(origin==='shortcut'&&shortcut){motion.native++;await shortcut.presentation.run(panel,true);}else motion.honeycomb++;
-      panel.inert=false;return true;},
-    async closePanel(id){const item=panels.get(id);if(!item)return false;if(origin==='shortcut'&&shortcut){await shortcut.presentation.run(item.panel,false);shortcut.presentation.release();}item.panel.hidden=true;item.panel.inert=true;return true;},
-  };
-  const protocol=new Function('h','createExtensionRuntime','BUNDLED_EXTENSIONS','bundledClassificationResolver','fixtureUI',protocolBlock+
-    '\nhubUI=fixtureUI;return {provide,extensionRuntime,dispose(){hubDisposed=true;return extensionRuntime.dispose();}};')(host,createExtensionRuntime,[],()=>()=> 'community',ui);
-  let finish;const whenDisposed=new Promise(r=>finish=r);
-  const runtime=protocol.extensionRuntime;
-  const hub={apiVersion:1,version:'0.8.1',...(legacy?{}:{whenDisposed}),extensions:{provide:protocol.provide,open:runtime.open,disable:runtime.disable,enable:runtime.enable,uninstall:runtime.uninstall}};
-  return {hub,runtime,panels,motion,
-    start(){host.__MieMieHub=hub;host.dispatchEvent(new host.CustomEvent('miemie:hub-ready',{detail:hub}));},
-    async stop(){if(closed)return whenDisposed;closed=true;const pending=protocol.dispose();shortcut?.dispose();shortcut=null;if(host.__MieMieHub===hub)delete host.__MieMieHub;host.dispatchEvent(new host.CustomEvent('miemie:hub-disposed',{detail:hub}));await pending;finish();},
-    preference(enabled){shortcutEnabled=enabled;shortcut?.dispose();shortcut=null;
-      if(enabled&&providers.has(manifest.id))shortcut=providers.get(manifest.id)({open:async()=>{origin='shortcut';await runtime.open(manifest.id);}});},
-    async openHoneycomb(){origin='honeycomb';return runtime.open(manifest.id);},
-    get shortcut(){return shortcut;},get shortcutEnabled(){return shortcutEnabled;},
-  };
+// Current tests execute the pinned API2 Runtime; original API1 fixtures remain intact.
+export function hubFixture(f,options={}) {
+ return createAPI2HubFixture(f.host,{id:manifest.id,...options,onAttach(){f.count.attached++;},onError:e=>f.errors.push(String(e))});
 }
