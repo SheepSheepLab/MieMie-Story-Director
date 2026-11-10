@@ -1,13 +1,19 @@
 import {createDirectorExtension} from '../director.js';
 import {mountDefaultPromptProtection} from './default-prompt-protection.js';
 import {mountOfficialDirectorPresentation} from './official-presentation.js';
+import {createLauncherAppearance, mountLauncherSettings} from './launcher-settings.js';
 
 // Production entry opts into the official UI. The original Phase 3 presentation
 // remains a frozen comparison fixture; both use the exact same Business Runtime.
 export function createOfficialDirectorExtension(api,options) {
   let view;
   const instance=createDirectorExtension(api,{...options,presentation:args=>{
-    view=mountOfficialDirectorPresentation(args);if(options.protectDefaultPrompts)mountDefaultPromptProtection(args);return view;
+    view=mountOfficialDirectorPresentation(args);
+    const {host, panel, resources, icon} = args;
+    mountLauncherSettings({host, panel, header: panel.querySelector('.director-heading'), icon,
+      appearance: options.launcherAppearance ?? createLauncherAppearance(host), resources, api, id: 'director-launcher'});
+    if (options.protectDefaultPrompts) mountDefaultPromptProtection(args);
+    return view;
   }});
   // Presentation-only, transient page selection travels with an existing host
   // handoff. Business's session fields and persistent settings are untouched.

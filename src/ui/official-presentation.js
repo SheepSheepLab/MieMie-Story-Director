@@ -159,7 +159,7 @@ export function mountOfficialDirectorPresentation({panel:window,host,resources,i
     }
     if(orb!==observedOrb){orbObserver?.disconnect();observedOrb=orb;if(orb){orbObserver=new host.MutationObserver(clearOrbOverlap);orbObserver.observe(orb,{attributes:true,attributeFilter:['style']});}}
   }
-  const surfaceObserver=new host.MutationObserver(clearOrbOverlap);surfaceObserver.observe(doc.body,{childList:true});
+  const surfaceObserver=new host.MutationObserver(clearOrbOverlap);surfaceObserver.observe(doc.documentElement,{childList:true});
   resources.listen(panel,'scroll',clearOrbOverlap,true);resources.listen(host,'resize',clearOrbOverlap);
   const windowObserver=new host.MutationObserver(clearOrbOverlap);windowObserver.observe(window,{attributes:true,attributeFilter:['hidden','style']});
   resources.add(()=>{surfaceObserver.disconnect();windowObserver.disconnect();orbObserver?.disconnect();});

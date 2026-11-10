@@ -15,5 +15,5 @@ function createProductDirectorExtension(api,options) {
 // No network-loaded code, eval or filesystem operation occurs in the runtime.
 export function startDirector({host,frame,helpers,manifest,icon,launcherStyles='',officialStyles='',onError}) {
   return createDirectorDualMode({host,frame,manifest,icon,launcherStyles,onError,
-    factory:api=>createProductDirectorExtension(api,{host,helpers,assets:{icon,styles:officialStyles}})});
+    factory:(api,launcherAppearance)=>createProductDirectorExtension(api,{host,helpers,launcherAppearance,assets:{icon,styles:officialStyles}})});
 }
