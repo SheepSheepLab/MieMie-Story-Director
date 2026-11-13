@@ -1,7 +1,7 @@
 // Display names are independent of protocol, script and historical storage identity.
 export const DIRECTOR_PRODUCT = Object.freeze({
   name: '咩咩故事导演',
-  version: '0.4.0',
+  version: '1.0.0',
   englishName: 'MieMie Story Director',
   launcherName: '咩咩导演',
   repository: 'https://github.com/SheepSheepLab/MieMie-Story-Director',

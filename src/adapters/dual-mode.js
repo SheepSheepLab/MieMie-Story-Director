@@ -1,5 +1,5 @@
 import {createAPI2NativeBridge} from './hub-api2.js';
-import {createLauncherAppearance, dismissLauncherSettings} from '../ui/launcher-settings.js';
+import {createLauncherAppearance, dismissPanelLayer} from '../ui/launcher-settings.js';
 // Adapted from MieMie Polisher v1.2.1 (5a0a5cf9), GPL-3.0-or-later.
 import {DIRECTOR_PRODUCT} from '../../product-identity.js';
 import {createDirectorNativeLauncher} from '../ui/native-launcher.js';
@@ -63,7 +63,7 @@ export function createDirectorDualMode({host, frame, manifest, factory, icon, la
       restore(session.instance);
       mode = 'standalone'; launcher(() => session.instance.open?.(), () => {
         if (!active() || !session.panel) return false;
-        return dismissLauncherSettings(session.panel) || (!session.panel.querySelector('dialog[open]') && api.closePanel());
+        return dismissPanelLayer(session.panel) || (!session.panel.querySelector('dialog[open]') && api.closePanel());
       });
     } catch (error) { await stopStandalone(); mode = 'error'; report(error); }
   }

@@ -112,22 +112,22 @@
 #meeme-story-director .md-api-actions{display:flex;gap:10px}
 #meeme-story-director [data-sp-save]{background:#102e56;border-color:#3b82f6}
 #meeme-story-director [data-sp-api-status]{font-size:12px;color:#9ccfff;overflow-wrap:anywhere;margin-top:10px}
-/* Editors and top-layer popovers share the theme without a second modal system. */
-#meeme-story-director .md-dialog{pointer-events:auto;color:var(--md-text);font:14px/1.55 system-ui;background:#08162a;border:1px solid #3889d7;border-radius:16px;padding:20px;position:fixed;inset:auto;left:50%;top:calc(var(--md-viewport-top,0px) + var(--md-viewport-height,100dvh)/2);transform:translate(-50%,-50%);margin:0;width:min(680px,calc(100vw - 32px));max-width:calc(100vw - 24px);max-height:calc(var(--md-viewport-height,100dvh) - 32px - var(--md-safe-top) - var(--md-safe-bottom));overflow:auto;box-shadow:0 20px 80px #000a}
-#meeme-story-director .md-dialog::backdrop{background:#030b18b8;backdrop-filter:blur(6px)}
-#meeme-story-director .md-dialog[open]{animation:md-dialog-in .18s ease-out}
-#meeme-story-director .md-editor{padding:0;min-height:min(480px,calc(var(--md-viewport-height,100dvh) - 32px));width:min(680px,calc(100vw - 32px))}
-#meeme-story-director .sp-editor-body{padding:20px;display:flex;flex-direction:column;gap:10px}
-#meeme-story-director .sp-editor-body strong{font-size:16px;line-height:22px;margin-bottom:4px}
-#meeme-story-director .sp-editor-body label{font-size:12px}
-#meeme-story-director .sp-editor-body textarea{height:227px;min-height:100px;max-height:calc(var(--md-viewport-height,100dvh) - 235px)}
-#meeme-story-director .sp-editor-footer{padding:14px 20px;border-top:1px solid #1e4779;background:#071326;position:sticky;bottom:0;z-index:1}
+#meeme-story-director .md-editor-layer{position:absolute;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;border-radius:inherit;background:#030b18b8;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+#meeme-story-director .md-dialog{position:relative;inset:auto;width:94%;max-height:94%;min-height:0;overflow:hidden;margin:0;padding:0;color:var(--md-text);background:#08162a;border:1px solid #3889d7;border-radius:16px;box-shadow:0 18px 46px #0009}
+#meeme-story-director .md-editor{height:94%}
+#meeme-story-director .md-dialog[open]{display:flex;flex-direction:column;animation:md-dialog-in .18s cubic-bezier(.2,.75,.3,1) both}
+#meeme-story-director .md-editor-head{flex:none;padding:15px 16px 12px;border-bottom:1px solid #1e4779}
+#meeme-story-director .md-editor-head strong{display:block;font-size:17px;line-height:1.4;outline:none}
+#meeme-story-director .sp-editor-body{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;scroll-padding-block:10px;padding:12px 16px;display:flex;flex-direction:column;gap:10px}
+#meeme-story-director .sp-editor-body label{font-size:14px;flex:none}
+#meeme-story-director .sp-editor-body .md-editor-content{display:flex;flex:1 0 auto;flex-direction:column}
+#meeme-story-director .sp-editor-body :is(input,textarea){font-size:16px}
+#meeme-story-director .md-editor-content textarea{flex:1;min-height:108px;resize:none}
+#meeme-story-director .sp-editor-footer{flex:none;padding:10px 16px;border-top:1px solid #1e4779;background:#071326}
 #meeme-story-director .sp-editor-footer button{width:100%;background:#0c2446}
-#meeme-story-director .md-template strong{font-size:16px}
-#meeme-story-director .md-template p{font-size:12px;color:var(--md-muted);margin:8px 0 18px}
+#meeme-story-director .md-template p{font-size:12px;color:var(--md-muted);margin:0}
 #meeme-story-director .sp-template-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 #meeme-story-director .sp-template-options button{background:#0c203e;min-height:62px;border-color:var(--md-line)}
-#meeme-story-director .sp-template-cancel{width:100%;margin-top:16px}
 #meeme-story-director .sp-tab-content[data-page=debug]{display:flex;overflow:hidden}
 #meeme-story-director .md-debug-page:not([hidden]){display:flex;flex-direction:column;gap:12px;flex:1;min-height:0;min-width:0;overflow:auto}
 #meeme-story-director .md-debug-page .sp-page-heading{margin-bottom:0}
@@ -146,7 +146,7 @@
 #meeme-story-director ::-webkit-scrollbar-track{background:transparent}
 #meeme-story-director ::-webkit-scrollbar-thumb{background:#376392;border-radius:6px}
 @keyframes md-page-in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
-@keyframes md-dialog-in{from{opacity:0;transform:translate(-50%,calc(-50% + 8px)) scale(.985)}to{opacity:1;transform:translate(-50%,-50%)}}
+@keyframes md-dialog-in{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
 @keyframes md-popover-in{from{opacity:0;transform:translateY(5px) scale(.96)}to{opacity:1;transform:none}}
 @keyframes md-jelly{0%,100%{transform:scale(1)}30%{transform:scale(1.22,.8)}55%{transform:scale(.86,1.14)}75%{transform:scale(1.07,.94)}}
 @media(max-width:420px){
@@ -166,15 +166,14 @@
  #meeme-story-director .sp-jelly-check{width:36px;height:44px;flex-basis:36px}#meeme-story-director .sp-requirement-name{font-size:12px!important;min-height:44px}
  #meeme-story-director .md-director-footer{padding:8px;gap:8px}
  #meeme-story-director .md-api-group{padding:10px}#meeme-story-director .sp-row{gap:8px}
- #meeme-story-director .md-dialog{padding:16px;width:calc(100vw - 24px);max-height:calc(var(--md-viewport-height,100dvh) - 24px);border-radius:14px}
- #meeme-story-director .md-editor{padding:0;min-height:0}#meeme-story-director .sp-editor-body{padding:16px}#meeme-story-director .sp-editor-body textarea{height:min(227px,calc(var(--md-viewport-height,100dvh) - 245px));min-height:80px}
- #meeme-story-director .sp-editor-footer{padding:12px 16px}#meeme-story-director .sp-template-options{grid-template-columns:1fr;gap:8px}#meeme-story-director .sp-template-options button{min-height:48px}
+ #meeme-story-director .md-dialog{border-radius:14px}
+ #meeme-story-director :is(.md-editor-head,.sp-editor-body,.sp-editor-footer){padding-inline:12px}
+ #meeme-story-director .sp-template-options{gap:6px}#meeme-story-director .sp-template-options button{min-height:48px;padding-inline:4px}
  #meeme-story-director .md-debug-page select{flex-basis:100%;min-width:0}
 }
 @media(max-height:560px){
  #meeme-story-director .director-heading{height:64px;min-height:64px;padding:6px 12px}#meeme-story-director .director-brand img{width:44px;height:44px;flex-basis:44px}
  #meeme-story-director .md-director-controls{padding:6px 10px}#meeme-story-director .md-director-footer{padding:6px 10px}
- #meeme-story-director .sp-editor-body textarea{height:min(227px,calc(var(--md-viewport-height,100dvh) - 245px));min-height:80px}
 }
 @media(prefers-reduced-motion:reduce){#meeme-story-director *,#meeme-story-director *::before,#meeme-story-director *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 

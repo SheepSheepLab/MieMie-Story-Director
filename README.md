@@ -1,12 +1,12 @@
 # 咩咩故事导演 / MieMie Story Director
 
-> **0.4.0** 支持 Hub 0.9.0 的 Extension API2，机器包沿用 Package v1。正式安装包见 [GitHub Release](https://github.com/SheepSheepLab/MieMie-Story-Director/releases/tag/v0.4.0)，运行与安装的独立验证见 [Hub API2 接入说明](docs/HUB-API2.md)。
+> **1.0.0** 支持 Hub 0.9.0 的 Extension API2，机器包沿用 Package v1。正式安装包见 [GitHub Release](https://github.com/SheepSheepLab/MieMie-Story-Director/releases/tag/v1.0.0)，运行与安装的独立验证见 [Hub API2 接入说明](docs/HUB-API2.md)。
 
 浮球可在工具内调整大小并启用潜航模式。潜航后向屏幕内侧拉动可打开，原地长按约 0.9 秒可拖动。面板打开时位于浮球之上，窄屏会模糊背景并挡住下层点击。
 
 咩咩故事导演让一个副 API 先规划本轮故事，再把大纲交给酒馆原本的主 API 扩写。玩家可以分别配置导演规划、最高指令和主 API 提示词；调试页可以检查实际发送的上下文与交接结果。
 
-当前版本为 **0.4.0**。历史 0.2.0 为首次 MieMie Extension Package v1。Owner 已确认功能、UI 和默认提示词；最新功能基线是已批准的 **0.1.5 实际实现**，包含三条固定默认提示词。0.1.22 继续作为原始实验基线和兼容回归参考。
+当前版本为 **1.0.0**。历史 0.2.0 为首次 MieMie Extension Package v1。Owner 已确认功能、UI 和默认提示词；最新功能基线是已批准的 **0.1.5 实际实现**，包含三条固定默认提示词。0.1.22 继续作为原始实验基线和兼容回归参考。
 
 正式 0.2.0 历史自动验证 **569 PASS / 0 FAIL / 0 SKIP**。本 API2 分支新增验收见 [Testing](docs/TESTING.md#api2-pre-main2026-10-20)；下句人工 Pending 属于原发行阶段。Desktop manual、Mobile manual、Real API manual 均为 **PENDING — post-release manual smoke test / follow-up**。Owner 已授权在人工 smoke test 前发布；自动检查不能代替人工验收。
 
@@ -16,11 +16,13 @@
 2. 副 API 输出报告。只有唯一、完整的 `<story_scene>…</story_scene>` 内文交给主 API，报告标签外的说明保留在调试中。
 3. 大纲替换本轮玩家输入的原位置；主 API 提示词替换预设对应的故事驱动规则，再由主 API 生成预设要求的完整回复。
 
+副 API 规划期间，发送区和导演面板会显示进度状态。规划完成并交给主 API 后，正文继续由酒馆接收。取消、超时和失败有各自的提示。
+
 当前针对**咩咩预设的故事模式**，功能基线对应 **5.8.2**。预设须保留脚本依赖的规划变量与格式条目结构。其他预设、群聊和非故事模式不在当前适配承诺内。主接口需要酒馆的 OpenAI 聊天补全模式；副接口需要兼容 OpenAI 的聊天补全 API。续写、静默与代替用户生成不进入导演规划流程。
 
 ## 安装
 
-酒馆助手直接导入 [MieMie-Story-Director-Extension-0.4.0.json](https://github.com/SheepSheepLab/MieMie-Story-Director/releases/download/v0.4.0/MieMie-Story-Director-Extension-0.4.0.json)。历史 [0.2.0 Release](https://github.com/SheepSheepLab/MieMie-Story-Director/releases/tag/v0.2.0) 附件如下。
+酒馆助手直接导入 [MieMie-Story-Director-Extension-1.0.0.json](https://github.com/SheepSheepLab/MieMie-Story-Director/releases/download/v1.0.0/MieMie-Story-Director-Extension-1.0.0.json)。历史 [0.2.0 Release](https://github.com/SheepSheepLab/MieMie-Story-Director/releases/tag/v0.2.0) 附件如下。
 
 [MieMie-Story-Director-Extension-0.2.0.json](https://github.com/SheepSheepLab/MieMie-Story-Director/releases/download/v0.2.0/MieMie-Story-Director-Extension-0.2.0.json)
 
@@ -48,7 +50,7 @@
 
 首次使用时，导演规划为空，最高指令依次为「禁止-默认」「大纲输出提示词-默认」，主 API 为「思维链-默认」。这三个默认条目固定在各自列表底部，不可编辑、删除或排序；可以开关、导出，也可以在只读编辑器中滚动、选择、复制。关闭默认后可使用自建规则，再次启用即可恢复默认内容。
 
-新建与导入的 DIY 条目从列表顶部插入，支持多条启用、按顺序拼接、编辑、删除及相互拖拽排序。名称区域用于排序，铅笔打开编辑器，更多菜单包含单条导出与删除；默认条目的删除按钮置灰。修改自动保存。导演规划新增可选单一、多合一或空白模板。
+新建与导入的 DIY 条目从列表顶部插入，支持多条启用、按顺序拼接、编辑、删除及相互拖拽排序。名称区域用于排序，铅笔打开编辑器，更多菜单包含单条导出与删除；默认条目的删除按钮置灰。修改自动保存。导演规划新增可选单一、多合一或空白模板。 提示词编辑页位于导演面板内，内容框随可用空间伸展，底部「完成」用于返回列表。
 
 升级保留已有 DIY 内容和启用状态。未修改过的旧默认更新为本次默认；被玩家修改过的旧默认保留为普通 DIY。已有库缺失的默认补回为关闭状态，避免改变原有启用组合。详见 [默认提示词说明](docs/DEFAULT-PROMPTS.md)。
 
@@ -74,7 +76,7 @@
 
 需要支持预设读取、扩展变量和生成事件的酒馆助手，以及提供相应上下文的 SillyTavern。当前 Hub 协议校验使用固定 API2 源码夹具；锁定 0.8.1 的测试继续验证历史版本，未进入本分支生产 Runtime。界面需要现代浏览器的 dialog、popover、SVG 等能力。
 
-当前 0.4.0 说明与公开 SHA-256 见 [正式发行](https://github.com/SheepSheepLab/MieMie-Story-Director/releases/tag/v0.4.0)；历史 0.2.0 的结果和哈希见 [Final RC 报告](docs/FINAL-RC.md)，测试范围见 [测试说明](docs/TESTING.md)。[Phase 5 报告](docs/PHASE-5-REVIEW.md) 仅记录历史 0.1.4，不能用其大小或哈希验证 0.2.0。真实酒馆桌面、Hub 组合与实体手机检查见 [人工验收清单](docs/PREFLIGHT.md)，目前未代为执行。当前范围和后续事项见 [已知限制](docs/KNOWN-LIMITATIONS.md)。
+当前 1.0.0 说明与公开 SHA-256 见 [正式发行](https://github.com/SheepSheepLab/MieMie-Story-Director/releases/tag/v1.0.0)；历史 0.2.0 的结果和哈希见 [Final RC 报告](docs/FINAL-RC.md)，测试范围见 [测试说明](docs/TESTING.md)。[Phase 5 报告](docs/PHASE-5-REVIEW.md) 仅记录历史 0.1.4，不能用其大小或哈希验证 0.2.0。真实酒馆桌面、Hub 组合与实体手机检查见 [人工验收清单](docs/PREFLIGHT.md)，目前未代为执行。当前范围和后续事项见 [已知限制](docs/KNOWN-LIMITATIONS.md)。
 
 ## 本地构建
 
@@ -99,4 +101,4 @@ npm run check:reproducible
 
 ## API2 新版候选审核
 
-最低 Runtime 要求、Standalone 与 Package v1 边界见 [0.4.0 正式发行说明](https://github.com/SheepSheepLab/MieMie-Story-Director/releases/tag/v0.4.0)。开发候选的既有结果见 [API2 Pre-Main](docs/TESTING.md#api2-pre-main2026-10-20)，正式在线安装与更新另行验收。
+最低 Runtime 要求、Standalone 与 Package v1 边界见 [1.0.0 正式发行说明](https://github.com/SheepSheepLab/MieMie-Story-Director/releases/tag/v1.0.0)。开发候选的既有结果见 [API2 Pre-Main](docs/TESTING.md#api2-pre-main2026-10-20)，正式在线安装与更新另行验收。

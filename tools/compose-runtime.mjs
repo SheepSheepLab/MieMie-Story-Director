@@ -11,7 +11,7 @@ export async function composeRuntime() {
     if(source.split(before).length!==2)throw Error('Lifecycle patch no longer matches exactly once: '+before.slice(0,90));
     source=source.replace(before,()=>after);
   }
-  once("\n(() => {\n  'use strict';", "\nexport function mountDirectorRuntime(options) {\n  'use strict';\n  const {host,api,resources,helpers}=options;");
+  once("\n(() => {\n  'use strict';", "\nexport function mountDirectorRuntime(options) {\n  'use strict';\n  const {host,api,resources,helpers,onProgress,editorPresentation}=options;");
   once("  const host=window.parent,doc=host.document,ctx=()=>host.SillyTavern.getContext(),ID='__meemeStoryPlanner';",
     "  const {getVariables,replaceVariables,getPreset,getLoadedPresetName,eventOn}=helpers;\n  const doc=resources.document(host.document),ctx=()=>host.SillyTavern.getContext(),ID='__meemeStoryPlanner';");
   once("  if(host[ID]){if(host[ID].open)host[ID].open();else host.alert('请先停用工具箱内的导演实验版并刷新，再启用独立导演。');return;}",
@@ -24,6 +24,24 @@ export async function composeRuntime() {
     "directorRoot.querySelector('[data-director-close]').onclick=()=>api.closePanel(presentationLease);");
   once("function block(e){if(e.type==='keydown'&&e.key==='Escape'",
     "function block(e){if(e.type==='keydown'&&(e.isComposing||e.keyCode===229))return;if(e.type==='keydown'&&e.key==='Escape'");
+  once("e.key==='Escape'&&(el('requirement-editor').open", "e.key==='Escape'&&!editorPresentation&&(el('requirement-editor').open");
+  once("  const rootEl=el;", `  function showLibraryDialog(dialog,opener,entryId) {
+    if(editorPresentation)editorPresentation.open(dialog,opener,entryId);
+    else if(!dialog.open)dialog.showModal();
+  }
+  function closeLibraryDialog(dialog,restore=true) {
+    if(editorPresentation)editorPresentation.close(dialog,restore);
+    else dialog.close?.();
+  }
+  const rootEl=el;`);
+  once("el('requirement-editor').close?.();", "closeLibraryDialog(el('requirement-editor'));");
+  once("function selectRequirement(id){", "function selectRequirement(id,opener=el('requirement-add')){");
+  once("if(!el('requirement-editor').open)el('requirement-editor').showModal();", "showLibraryDialog(el('requirement-editor'),opener,id);");
+  once("edit.onclick=()=>selectRequirement(entry.id);", "edit.onclick=()=>selectRequirement(entry.id,edit);");
+  once("rootEl('planning-template').showModal();", "showLibraryDialog(rootEl('planning-template'),el('requirement-add'));");
+  once("rootEl('planning-template').close();addEntry(content);", "closeLibraryDialog(rootEl('planning-template'),false);addEntry(content);");
+  once("()=>rootEl('planning-template').close();", "()=>closeLibraryDialog(rootEl('planning-template'));");
+  once("if(kind==='planning')rootEl('planning-template').close?.();", "if(kind==='planning')closeLibraryDialog(rootEl('planning-template'));");
   source=source.replaceAll('host.setTimeout(', 'resources.timeout(').replaceAll('host.clearTimeout(', 'resources.clear(');
   source=source.replaceAll('new host.AbortController()', 'resources.trackController(new host.AbortController())');
   source=source.replaceAll('host.URL.createObjectURL(', 'resources.objectURL(').replaceAll('host.URL.revokeObjectURL(', 'resources.revokeURL(');
@@ -37,6 +55,46 @@ export async function composeRuntime() {
     "for(const e of ['click','keydown','submit']){host.addEventListener(e,block,true);resources.add(()=>host.removeEventListener(e,block,true));}");
   once('function cleanup(){disposed=true;', 'function cleanup(){if(disposed)return;disposed=true;');
   once('if(host.fetch===directorFetch)host.fetch=originalFetch;', '');
+  once('  const fingerprint=()=>JSON.stringify(ctx().chat.map(m=>[m.is_user,m.mes,m.swipe_id]));', `  const captureChat=()=>ctx().chat.map(m=>[m.is_user??null,m.mes??null,m.swipe_id??null]);
+  function chatMatches(snapshot){
+    const chat=ctx().chat;
+    if(chat.length!==snapshot.length)return false;
+    return chat.every((m,i)=>{
+      const [user,text,swipe]=snapshot[i];
+      return (m.is_user??null)===user&&(m.mes??null)===text&&(m.swipe_id??null)===swipe;
+    });
+  }`);
+  once('fingerprint:fingerprint()', 'chatSnapshot:captureChat()');
+  once('r.fingerprint!==fingerprint()', '!chatMatches(r.chatSnapshot)');
+  once('fingerprint()!==run.fingerprint', '!chatMatches(run.chatSnapshot)');
+  once("const player=[...ctx().chat].reverse().find(m=>m.is_user)?.mes||'';", "const player=ctx().chat.findLast(m=>m.is_user)?.mes||'';");
+  once("const record=[...records].reverse().find(x=>!x.used&&JSON.stringify(x.payload)===sourceBody);", "const record=records.findLast(x=>!x.used&&JSON.stringify(x.payload)===sourceBody);");
+  once("  function renderRules(variables){\n    const list=el('rules-preview');list.replaceChildren();", `  let renderedRules;
+  function renderRules(variables){
+    const signature=JSON.stringify(variables.flatMap(v=>v.sources.map(source=>[source.name,v.name])));
+    if(signature===renderedRules)return;
+    renderedRules=signature;
+    const list=el('rules-preview');list.replaceChildren();`);
+  once("catch(e){el('rules-preview').textContent=e.message;}", "catch(e){renderedRules=undefined;el('rules-preview').textContent=e.message;}");
+  once('  function cancel(reason){if(run)run.controller.abort();say(reason);}', `  function cancel(reason){
+    if(run){
+      if(run.planning&&!run.sent&&!run.cancelled&&!disposed)onProgress?.('cancelled','本轮规划已取消');
+      run.cancelled=true;run.controller.abort();
+    }
+    say(reason);
+  }`);
+  once('timer=resources.timeout(abort,config.timeout*1000);', 'timer=resources.timeout(()=>{r.timedOut=true;abort();},config.timeout*1000);');
+  once('      const report=await Promise.race([callExpert(expert,r,nativeFetch),interrupted]);guard(r);', `      r.planning=true;onProgress?.('waiting','正在规划 · 等待副 API');
+      const report=await Promise.race([callExpert(expert,r,nativeFetch),interrupted]);guard(r);`);
+  once('      r.sent=true;const response=await nativeFetch.call', `      r.sent=true;onProgress?.('done','规划完成 · 交给主 API');
+      const response=await nativeFetch.call`);
+  once("    }catch(e){r.diagnostic.status=e.message||'故事规划失败';", `    }catch(e){
+      if(r.planning&&!r.sent&&!r.cancelled){
+        const cancelled=r.controller.signal.aborted&&!r.timedOut;
+        onProgress?.(cancelled?'cancelled':'failed',cancelled?'本轮规划已取消':r.timedOut?'规划超时':'规划失败 · 主 API 未发送');
+      }
+      r.diagnostic.status=e.message||'故事规划失败';`);
+  once("cancel('聊天已切换，旧规划已取消。');generation=null;", "cancel('聊天已切换，旧规划已取消。');onProgress?.();generation=null;");
   once("  host.fetch=directorFetch;host[ID]={dispatch,open};window.addEventListener('pagehide',cleanup,{once:true});paint();debug();inspectRules();say('实验版默认关闭；仅适配咩咩预设的故事模式。');",
     `  resources.add(cleanup);resources.add(installDirectorFetchHook(host,directorFetch,originalFetch));
   host[ID]={dispatch,open};resources.add(()=>{if(host[ID]?.dispatch===dispatch)delete host[ID];});paint();debug();inspectRules();say('实验版默认关闭；仅适配咩咩预设的故事模式。');

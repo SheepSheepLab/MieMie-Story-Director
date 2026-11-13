@@ -1,4 +1,5 @@
 import {DIRECTOR_PRODUCT} from '../../product-identity.js';
+import {mountRequestProgress} from './request-progress.js';
 
 // Presentation only: relocate the already-bound controls, never clone their
 // handlers, rewrite config, call a provider or rebuild business state.
@@ -23,7 +24,9 @@ export function mountOfficialDirectorPresentation({panel:window,host,resources,i
   heading.querySelector('strong').textContent=`${DIRECTOR_PRODUCT.name} ${DIRECTOR_PRODUCT.version}`;
   function paintCharacter() {
     const c=host.SillyTavern.getContext(),character=!c.groupId&&c.characters?.[c.characterId];
-    heading.querySelector('small').textContent=character?`当前角色：${character.name||c.characterId}`:'请打开单人角色聊天';
+    const subtitle=heading.querySelector('small');
+    const text=character?`当前角色：${character.name||c.characterId}`:'请打开单人角色聊天';
+    if(subtitle.textContent!==text)subtitle.textContent=text;
   }
   paintCharacter();
   const returnButton=root.querySelector('[data-director-close]');
@@ -32,6 +35,8 @@ export function mountOfficialDirectorPresentation({panel:window,host,resources,i
   controls.append(q('toggle'));panel.prepend(controls);
   const oldCancelRow=panel.querySelector(':scope > .sp-row');
   const footer=make('footer','md-director-footer'),runtimeStatus=make('div','md-runtime-status');runtimeStatus.append(q('status'),q('cancel'));footer.append(runtimeStatus,returnButton);panel.append(footer);
+  const progress=mountRequestProgress({doc,resources,panelAnchor:runtimeStatus,label:DIRECTOR_PRODUCT.name,
+    palette:{bg:'#0b1b30',border:'#254767',text:'#d4e9ff',accent:'#81bcff',offset:'46px'}});
   if(oldCancelRow&&!oldCancelRow.children.length)oldCancelRow.remove();
   q('status').setAttribute('aria-live','polite');q('api-status').setAttribute('aria-live','polite');
   function state() {
@@ -93,44 +98,90 @@ export function mountOfficialDirectorPresentation({panel:window,host,resources,i
   const generation=group('生成参数');generation.append(q('tokens').closest('.sp-row'));
   const actions=make('div','md-api-actions');actions.append(q('save'),q('test'));apiPage.append(actions,q('api-status'));
   for(const empty of apiPage.querySelectorAll('.sp-model-row,.sp-row'))if(!empty.children.length)empty.remove();
-  // Existing dialogs retain autosave/Done/Cancel/Escape semantics. The added
-  // listeners only restore focus and respond to the visual viewport keyboard.
-  for(const dialog of panel.querySelectorAll('dialog')) {
-    dialog.classList.add('md-dialog');let origin=null,entryId=null;
-    resources.listen(dialog,'close',()=>{
-      const replacement=entryId?[...panel.querySelectorAll('.sp-requirement')].find(r=>r.dataset.entryId===entryId)?.children[2]:null;
-      const focus=origin?.isConnected?origin:replacement;if(focus&&!window.hidden)focus.focus({preventScroll:true});origin=null;entryId=null;
-    });
-    resources.listen(dialog,'cancel',()=>{origin=origin||doc.activeElement;});
-    resources.listen(panel,'click',e=>{if(!dialog.open){origin=e.target.closest?.('button')||doc.activeElement;entryId=origin?.closest('.sp-requirement')?.dataset.entryId;}},true);
-  }
+  const editorLayer=make('div','md-editor-layer');editorLayer.hidden=true;panel.append(editorLayer);
   for(const kind of ['planning','requirement','writer']) {
-    const dialog=q(kind+'-editor');dialog.classList.add('md-editor');
-    q(kind+'-name').setAttribute('aria-label','名称');q(kind+'-content').setAttribute('aria-label','内容');
+    const dialog=q(kind+'-editor'),title=dialog.querySelector('strong');
+    dialog.classList.add('md-dialog','md-editor');dialog.setAttribute('aria-modal','true');
+    const header=make('header','md-editor-head');title.tabIndex=-1;header.append(title);dialog.prepend(header);
+    editorLayer.append(dialog);
+    q(kind+'-name').setAttribute('aria-label','名称');
+    const content=q(kind+'-content');content.setAttribute('aria-label','内容');content.closest('label').classList.add('md-editor-content');
   }
-  q('planning-template').classList.add('md-template');
+  const template=q('planning-template'),templateTitle=q('planning-template-heading');
+  template.classList.add('md-dialog','md-template');template.setAttribute('aria-modal','true');
+  const templateHead=make('header','md-editor-head'),templateBody=make('div','sp-editor-body'),templateFooter=make('footer','sp-editor-footer');
+  templateTitle.removeAttribute('autofocus');
+  templateHead.append(templateTitle);
+  templateBody.append(template.querySelector('p'),template.querySelector('.sp-template-options'));
+  templateFooter.append(q('planning-template-close'));
+  template.append(templateHead,templateBody,templateFooter);editorLayer.append(template);
+  let activeEditor=null,covered=[];
+  function openEditor(dialog,opener,entryId) {
+    if(activeEditor?.dialog===dialog && activeEditor.entryId===entryId)return;
+    if(activeEditor)closeEditor(activeEditor.dialog,false);
+    activeEditor={dialog,opener,entryId};
+    // Keep the host chrome and other windows outside the editor's inert scope.
+    for(let node=editorLayer;node!==window;node=node.parentElement) {
+      for(const sibling of node.parentElement.children) {
+        if(sibling===node||sibling.inert||sibling.hasAttribute('inert'))continue;
+        sibling.setAttribute('inert','');covered.push(sibling);
+      }
+    }
+    editorLayer.hidden=false;dialog.open=true;
+    dialog.querySelector('.sp-editor-body').scrollTop=0;
+    dialog.querySelector('.md-editor-head strong').focus({preventScroll:true});
+  }
+  function closeEditor(dialog,restore=true) {
+    if(activeEditor?.dialog!==dialog)return false;
+    const {opener,entryId}=activeEditor;
+    activeEditor=null;dialog.open=false;editorLayer.hidden=true;
+    for(const node of covered)node.removeAttribute('inert');
+    covered=[];
+    if(restore&&!window.hidden&&!window.inert) {
+      const pencil=entryId&&[...panel.querySelectorAll('.sp-requirement')].find(row=>row.dataset.entryId===entryId)?.children[2];
+      (opener?.isConnected?opener:pencil)?.focus({preventScroll:true});
+    }
+    return true;
+  }
+  function dismissEditor(){return activeEditor?closeEditor(activeEditor.dialog):false;}
+  resources.listen(editorLayer,'keydown',e=>{
+    if(e.key!=='Tab'||e.defaultPrevented||!activeEditor)return;
+    const dialog=activeEditor.dialog,controls=[...dialog.querySelectorAll('button:not(:disabled),input:not(:disabled),textarea:not(:disabled)')];
+    const edge=e.shiftKey?controls[0]:controls.at(-1);
+    if(doc.activeElement!==edge&&doc.activeElement!==dialog.querySelector('.md-editor-head strong'))return;
+    e.preventDefault();(e.shiftKey?controls.at(-1):controls[0])?.focus();
+  });
+  const editorObserver=new host.MutationObserver(()=>{
+    if(activeEditor&&(window.hidden||window.inert))closeEditor(activeEditor.dialog,false);
+  });
+  editorObserver.observe(window,{attributes:true,attributeFilter:['hidden','inert']});
+  resources.add(()=>{editorObserver.disconnect();if(activeEditor)closeEditor(activeEditor.dialog,false);});
   const done=new WeakSet();
-  function enhance() {
-    state();paintCharacter();
-    for(const row of panel.querySelectorAll('.sp-requirement')) {
+  function enhance(node) {
+    if(node.nodeType!==1||!panel.contains(node))return;
+    const rows=node.matches('.sp-requirement')?[node]:node.querySelectorAll('.sp-requirement');
+    for(const row of rows) {
       if(done.has(row))continue;done.add(row);
       const name=row.querySelector('.sp-requirement-name');name.title='拖动排序；也可用上下方向键';
       const buttons=[...row.querySelectorAll(':scope > button')];
       iconButton(buttons[1],'edit','编辑 '+name.textContent);iconButton(buttons[2],'more','更多操作 '+name.textContent);buttons[2].setAttribute('aria-haspopup','true');
     }
-    for(const menu of panel.querySelectorAll('.sp-entry-menu')) {
+    const menus=node.matches('.sp-entry-menu')?[node]:node.querySelectorAll('.sp-entry-menu');
+    for(const menu of menus) {
       const buttons=menu.querySelectorAll('button');if(buttons.length!==2||done.has(buttons[0]))continue;done.add(buttons[0]);
       const labels=[...buttons].map(b=>b.getAttribute('aria-label'));
       iconButton(buttons[0],'export','导出',true);iconButton(buttons[1],'delete','删除',true);
       buttons.forEach((button,index)=>button.setAttribute('aria-label',labels[index]));
     }
   }
-  // Escape dismisses this product's top-layer menu before reaching the host's
-  // window-close shortcut; this is UI focus/dismissal only.
+  // Escape dismisses a menu or editor before reaching the host's window-close shortcut.
   resources.listen(doc,'keydown',e=>{
     if(e.key!=='Escape'||e.isComposing||e.keyCode===229)return;
     const menu=[...panel.querySelectorAll('.sp-entry-menu')].find(m=>m.matches(':popover-open'));
     if(menu){e.preventDefault();e.stopImmediatePropagation();menu.close();}
+    else if(activeEditor&&!window.hidden&&!window.inert&&(window.contains(e.target)||e.target===doc)){
+      e.preventDefault();e.stopImmediatePropagation();if(!e.repeat)dismissEditor();
+    }
   },true);
   // Chromium hands a mouse pointer over to HTML drag-and-drop by emitting
   // pointercancel (sometimes on the destination name). Do not let the touch
@@ -141,32 +192,59 @@ export function mountOfficialDirectorPresentation({panel:window,host,resources,i
     const name=e.target.closest?.('.sp-requirement-name');
     if(name&&panel.contains(name)&&name.parentElement.parentElement.querySelector('[data-dragging=true]'))e.stopImmediatePropagation();
   },true);
-  enhance();
-  const observer=new host.MutationObserver(enhance);
+  enhance(panel);state();paintCharacter();
+  const observer=new host.MutationObserver(records=>{
+    state();paintCharacter();
+    for(const record of records){
+      if(record.target.matches?.('.sp-entry-menu'))enhance(record.target);
+      for(const node of record.addedNodes)enhance(node);
+    }
+  });
   observer.observe(panel,{childList:true,subtree:true,attributes:true,attributeFilter:['data-on','hidden'],characterData:true});
   resources.add(()=>observer.disconnect());
   // Keep controls that pass behind the persistent right-docked native orb
   // reachable on narrow screens. Only card padding changes: docking, launcher
   // position, panel geometry, motion and Host ownership stay untouched.
-  let orbObserver=null,observedOrb=null;
+  let orbObserver=null,observedOrb=null,frame=null,scheduled=false,disposed=false;
+  const clearance=new Map();
   function clearOrbOverlap() {
-    const orb=doc.querySelector('[data-miemie-director-native]'),o=orb?.getBoundingClientRect();
-    for(const node of panel.querySelectorAll('.sp-library-tools,.sp-requirement')) {
-      const r=node.getBoundingClientRect();
-      const overlaps=o&&o.left>(host.innerWidth||doc.documentElement.clientWidth)/2&&r.width&&r.top<o.bottom&&r.bottom>o.top&&r.right>o.left&&r.left<o.right;
-      const space=overlaps?Math.min(80,Math.max(0,r.right-o.left+4)):0;
-      if(space)node.style.setProperty('--md-orb-clearance',space+'px');else node.style.removeProperty('--md-orb-clearance');
+    const orb=doc.querySelector('[data-miemie-director-native]');
+    if(orb!==observedOrb){
+      orbObserver?.disconnect();observedOrb=orb;
+      if(orb){orbObserver=new host.MutationObserver(scheduleOrbOverlap);orbObserver.observe(orb,{attributes:true,attributeFilter:['style']});}
     }
-    if(orb!==observedOrb){orbObserver?.disconnect();observedOrb=orb;if(orb){orbObserver=new host.MutationObserver(clearOrbOverlap);orbObserver.observe(orb,{attributes:true,attributeFilter:['style']});}}
+    const next=new Map(),o=!window.hidden&&orb?.getBoundingClientRect();
+    if(o&&o.left>(host.innerWidth||doc.documentElement.clientWidth)/2){
+      for(const node of panel.querySelectorAll('.sp-library-tools,.sp-requirement')) {
+        const r=node.getBoundingClientRect();
+        if(r.width&&r.top<o.bottom&&r.bottom>o.top&&r.right>o.left&&r.left<o.right)next.set(node,Math.min(80,r.right-o.left+4)+'px');
+      }
+    }
+    for(const node of clearance.keys())if(!next.has(node)){node.style.removeProperty('--md-orb-clearance');clearance.delete(node);}
+    for(const [node,space] of next)if(clearance.get(node)!==space){node.style.setProperty('--md-orb-clearance',space);clearance.set(node,space);}
   }
-  const surfaceObserver=new host.MutationObserver(clearOrbOverlap);surfaceObserver.observe(doc.documentElement,{childList:true});
-  resources.listen(panel,'scroll',clearOrbOverlap,true);resources.listen(host,'resize',clearOrbOverlap);
-  const windowObserver=new host.MutationObserver(clearOrbOverlap);windowObserver.observe(window,{attributes:true,attributeFilter:['hidden','style']});
-  resources.add(()=>{surfaceObserver.disconnect();windowObserver.disconnect();orbObserver?.disconnect();});
-  clearOrbOverlap();
+  function scheduleOrbOverlap(){
+    if(disposed||scheduled)return;
+    scheduled=true;
+    const update=()=>{scheduled=false;frame=null;if(!disposed)clearOrbOverlap();};
+    if(host.requestAnimationFrame)frame=host.requestAnimationFrame(update);else queueMicrotask(update);
+  }
+  const surfaceObserver=new host.MutationObserver(scheduleOrbOverlap);surfaceObserver.observe(doc.documentElement,{childList:true});
+  resources.listen(panel,'scroll',scheduleOrbOverlap,true);resources.listen(host,'resize',scheduleOrbOverlap);
+  const windowObserver=new host.MutationObserver(scheduleOrbOverlap);windowObserver.observe(window,{attributes:true,attributeFilter:['hidden','style']});
+  const overlapObserver=new host.MutationObserver(scheduleOrbOverlap);overlapObserver.observe(panel,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});
+  function dispose(){
+    if(disposed)return;
+    disposed=true;if(frame!==null)host.cancelAnimationFrame(frame);clearance.clear();
+    observer.disconnect();surfaceObserver.disconnect();windowObserver.disconnect();orbObserver?.disconnect();overlapObserver.disconnect();
+  }
+  resources.add(dispose);
+  scheduleOrbOverlap();
   const viewport=host.visualViewport;
-  const fit=()=>{if(viewport){root.style.setProperty('--md-viewport-height',viewport.height+'px');root.style.setProperty('--md-viewport-top',viewport.offsetTop+'px');}};
-  if(viewport){resources.listen(viewport,'resize',fit);resources.listen(viewport,'scroll',fit);fit();}
-  const overlapObserver=new host.MutationObserver(clearOrbOverlap);overlapObserver.observe(panel,{childList:true,subtree:true});resources.add(()=>overlapObserver.disconnect());
-  return {capturePage:()=>selectedPage,restorePage:(name,debugSelection)=>{if(debugSelection)q('debug-page').value=debugSelection;selectPage(name);},refreshHeader:paintCharacter,dispose(){observer.disconnect();surfaceObserver.disconnect();windowObserver.disconnect();orbObserver?.disconnect();overlapObserver.disconnect();}};
+  const fit=()=>root.style.setProperty('--md-viewport-height',viewport.height+'px');
+  if(viewport){resources.listen(viewport,'resize',fit);fit();}
+  return {capturePage:()=>selectedPage,restorePage:(name,debugSelection)=>{if(debugSelection)q('debug-page').value=debugSelection;selectPage(name);},refreshHeader:paintCharacter,
+    openEditor,closeEditor,dismissEditor,
+    updateProgress(state,text){if(state)progress.show(state,text);else progress.clear();},
+    dispose};
 }

@@ -7,11 +7,16 @@ import {createLauncherAppearance, mountLauncherSettings} from './launcher-settin
 // remains a frozen comparison fixture; both use the exact same Business Runtime.
 export function createOfficialDirectorExtension(api,options) {
   let view;
-  const instance=createDirectorExtension(api,{...options,presentation:args=>{
+  const editorPresentation={
+    open:(...args)=>view.openEditor(...args),
+    close:(...args)=>view?.closeEditor(...args),
+  };
+  const instance=createDirectorExtension(api,{...options,editorPresentation,presentation:args=>{
     view=mountOfficialDirectorPresentation(args);
     const {host, panel, resources, icon} = args;
     mountLauncherSettings({host, panel, header: panel.querySelector('.director-heading'), icon,
-      appearance: options.launcherAppearance ?? createLauncherAppearance(host), resources, api, id: 'director-launcher'});
+      appearance: options.launcherAppearance ?? createLauncherAppearance(host), resources, api, id: 'director-launcher',
+      dismissEditor:view.dismissEditor});
     if (options.protectDefaultPrompts) mountDefaultPromptProtection(args);
     return view;
   }});

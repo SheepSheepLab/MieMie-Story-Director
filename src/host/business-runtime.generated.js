@@ -3,7 +3,7 @@ import {installDirectorFetchHook} from './resources.js';
 // 咩咩故事导演 · 独立测试版 0.1.22
 export function mountDirectorRuntime(options) {
   'use strict';
-  const {host,api,resources,helpers}=options;
+  const {host,api,resources,helpers,onProgress,editorPresentation}=options;
 const StoryPlannerCore = (() => {
   const DEFAULT_RULES = `读取当前上下文与预设规划规则，向执笔者提供完整导演报告。说明本轮判定结果、必要依据、NPC动机与行动、事件结果、时间推进及本轮停点。报告的分节与格式可以按需要安排，不需要固定JSON结构。
 以世界书和已发生事实为依据；预测、猜测和未来计划不要写成已发生事实。区分各NPC已知信息、来源与未知信息，避免把玩家心声或原著未来当成NPC知识。
@@ -338,7 +338,15 @@ const StoryPlannerCore = (() => {
 
   const el=n=>box.querySelector('[data-sp-'+n+']'),say=s=>{if(!disposed)el('status').textContent=s;};
   const scope=()=>JSON.stringify([ctx().characterId,ctx().groupId,ctx().chatId]);
-  const fingerprint=()=>JSON.stringify(ctx().chat.map(m=>[m.is_user,m.mes,m.swipe_id]));
+  const captureChat=()=>ctx().chat.map(m=>[m.is_user??null,m.mes??null,m.swipe_id??null]);
+  function chatMatches(snapshot){
+    const chat=ctx().chat;
+    if(chat.length!==snapshot.length)return false;
+    return chat.every((m,i)=>{
+      const [user,text,swipe]=snapshot[i];
+      return (m.is_user??null)===user&&(m.mes??null)===text&&(m.swipe_id??null)===swipe;
+    });
+  }
   function paint(){if(disposed)return;el('toggle').textContent='故事导演：'+(enabled?'开启':'关闭');el('toggle').dataset.on=String(enabled);el('cancel').hidden=!run;}
   function redact(text){for(const key of secrets)if(key)text=text.split(key).join('[密钥已隐藏]');return text;}
   function debug(){if(disposed)return;
@@ -357,12 +365,16 @@ const StoryPlannerCore = (() => {
   el('open-debug').onclick=resources.guard(()=>{const dialog=el('dialog');if(!dialog.open)dialog.showModal?.();debug();});
   el('close-debug').onclick=resources.guard(closeDebug);
   el('debug-page').onchange=resources.guard(()=>{debugPage=el('debug-page').value;debug();});
+  let renderedRules;
   function renderRules(variables){
+    const signature=JSON.stringify(variables.flatMap(v=>v.sources.map(source=>[source.name,v.name])));
+    if(signature===renderedRules)return;
+    renderedRules=signature;
     const list=el('rules-preview');list.replaceChildren();
     for(const v of variables)for(const source of v.sources){const row=doc.createElement('div');row.className='sp-rule';row.setAttribute('role','listitem');const title=doc.createElement('div');title.textContent=source.name;const meta=doc.createElement('small');meta.textContent=v.name;row.appendChild(title);row.appendChild(meta);list.appendChild(row);}
     if(!list.children.length)list.textContent='当前没有启用的规划条目。';
   }
-  function inspectRules(){if(disposed)return;try{renderRules(StoryPlannerCore.planningSources(getPreset('in_use')));}catch(e){el('rules-preview').textContent=e.message;}}
+  function inspectRules(){if(disposed)return;try{renderRules(StoryPlannerCore.planningSources(getPreset('in_use')));}catch(e){renderedRules=undefined;el('rules-preview').textContent=e.message;}}
   const tabKeys=['expert','writer','api'];
   function selectTab(key,focus=false){
     closeDebug();
@@ -386,6 +398,14 @@ const StoryPlannerCore = (() => {
   delete config.custom;
   const persistRequirements=()=>{replaceVariables(config,STORE);};
   if((writerMigrated&&Object.prototype.hasOwnProperty.call(saved,'writerPrompt'))||upgraded.changed||(migrated&&saved.custom?.trim()))persistRequirements();
+  function showLibraryDialog(dialog,opener,entryId) {
+    if(editorPresentation)editorPresentation.open(dialog,opener,entryId);
+    else if(!dialog.open)dialog.showModal();
+  }
+  function closeLibraryDialog(dialog,restore=true) {
+    if(editorPresentation)editorPresentation.close(dialog,restore);
+    else dialog.close?.();
+  }
   const rootEl=el;
   function mountLibrary(kind,key,label){
   const el=n=>rootEl(kind==='requirement'?n:n.replace('requirements',kind+'s').replace('requirement',kind));
@@ -403,8 +423,8 @@ const StoryPlannerCore = (() => {
   }
 
   const selectedEntry=()=>config[key].find(e=>e.id===selectedRequirement);
-  function closeRequirementEditor(){el('requirement-editor').close?.();}
-  function selectRequirement(id){selectedRequirement=id;paintRequirements();const entry=selectedEntry();if(entry){el('requirement-name').value=entry.name;el('requirement-content').value=entry.content;if(!el('requirement-editor').open)el('requirement-editor').showModal();}else closeRequirementEditor();}
+  function closeRequirementEditor(){closeLibraryDialog(el('requirement-editor'));}
+  function selectRequirement(id,opener=el('requirement-add')){selectedRequirement=id;paintRequirements();const entry=selectedEntry();if(entry){el('requirement-name').value=entry.name;el('requirement-content').value=entry.content;showLibraryDialog(el('requirement-editor'),opener,id);}else closeRequirementEditor();}
   function clearDrag(){if(touchDrag){touchDrag.row.style.transform='';delete touchDrag.row.dataset.touchDrag;touchDrag=null;}draggedRequirement=null;for(const row of el('requirements').children){delete row.dataset.dragging;delete row.dataset.dropTarget;}}
   function moveRequirement(fromId,toId){const from=config[key].findIndex(e=>e.id===fromId),to=config[key].findIndex(e=>e.id===toId);if(from<0||to<0||from===to)return;const [item]=config[key].splice(from,1);config[key].splice(to,0,item);persistRequirements();paintRequirements(fromId);}
   function exportRequirements(entries){
@@ -430,7 +450,7 @@ const StoryPlannerCore = (() => {
         grip.onpointerup=resources.guard(()=>{if(!touchDrag)return;const {id,target,moved}=touchDrag;clearDrag();if(moved)moveRequirement(id,target);});grip.onpointercancel=resources.guard(clearDrag);
       }
       row.dataset.entryId=entry.id;
-      const edit=doc.createElement('button');edit.type='button';edit.textContent='✎';edit.title='编辑';edit.setAttribute('aria-label','编辑 '+entry.name);edit.onclick=resources.guard(()=>selectRequirement(entry.id));
+      const edit=doc.createElement('button');edit.type='button';edit.textContent='✎';edit.title='编辑';edit.setAttribute('aria-label','编辑 '+entry.name);edit.onclick=resources.guard(()=>selectRequirement(entry.id,edit));
       const exp=doc.createElement('button');exp.type='button';exp.textContent='↥ 导出';exp.title='导出此条目';exp.setAttribute('aria-label','导出 '+entry.name);exp.onclick=resources.guard(()=>{menu.close();exportRequirements([entry]);});
       const remove=doc.createElement('button');remove.type='button';remove.textContent='× 删除';remove.title='删除此条目';remove.setAttribute('aria-label','删除 '+entry.name);remove.onclick=resources.guard(()=>{menu.close();config[key]=config[key].filter(e=>e.id!==entry.id);persistRequirements();if(selectedRequirement===entry.id)selectRequirement(null);else paintRequirements();});
       const more=doc.createElement('button');more.type='button';more.textContent='···';more.title='更多操作';more.setAttribute('aria-label','更多操作 '+entry.name);let dismissOnClick=false;more.onpointerdown=resources.guard(()=>{dismissOnClick=menuInvoker===more&&menu.matches(':popover-open');});more.onclick=resources.guard(()=>{const dismiss=dismissOnClick||(menuInvoker===more&&menu.matches(':popover-open'));dismissOnClick=false;if(dismiss)menu.close();else openMenu(more,exp,remove);});more.onpointercancel=resources.guard(()=>{dismissOnClick=false;});
@@ -438,11 +458,11 @@ const StoryPlannerCore = (() => {
     }
   }
   function addEntry(content=''){const entry={id:newId(),name:'新建'+label,enabled:true,content};config[key].unshift(entry);persistRequirements();selectRequirement(entry.id);el('requirement-name').focus?.();}
-  el('requirement-add').onclick=resources.guard(()=>{if(kind==='planning'){rootEl('planning-template').showModal();rootEl('planning-template-heading').focus?.({preventScroll:true});}else addEntry();});
+  el('requirement-add').onclick=resources.guard(()=>{if(kind==='planning'){showLibraryDialog(rootEl('planning-template'),el('requirement-add'));rootEl('planning-template-heading').focus?.({preventScroll:true});}else addEntry();});
   if(kind==='planning'){
     const templates={single:'[输入标题]: (规则内容)',multi:'[输入标题]:(**逐条列出本回合将如何执行以下规则，不得改写或省略原规则内容。**)\n- 【输入标题】: 规则内容\n- 【输入标题】: 规则内容\n- 【输入标题】: 规则内容',custom:''};
-    for(const [type,content] of Object.entries(templates))rootEl('planning-'+type).onclick=resources.guard(()=>{rootEl('planning-template').close();addEntry(content);});
-    rootEl('planning-template-close').onclick=resources.guard(()=>rootEl('planning-template').close());
+    for(const [type,content] of Object.entries(templates))rootEl('planning-'+type).onclick=resources.guard(()=>{closeLibraryDialog(rootEl('planning-template'),false);addEntry(content);});
+    rootEl('planning-template-close').onclick=resources.guard(()=>closeLibraryDialog(rootEl('planning-template')));
   }
 
   el('requirement-close').onclick=resources.guard(closeRequirementEditor);
@@ -453,7 +473,7 @@ const StoryPlannerCore = (() => {
   el('requirement-file').onchange=resources.guard(async()=>{try{const file=el('requirement-file').files?.[0];if(!file)return;if(file.size>4000000)throw Error('文件过大，请分批导入。');const entries=StoryPlannerCore.importRequirements(JSON.parse(await file.text()));if(disposed)return;const added=entries.map(e=>({...e,id:newId()}));config[key].unshift(...added);persistRequirements();selectRequirement(added[0]?.id||selectedRequirement);say('已导入 '+added.length+' 条'+label+'。');}catch(e){say(e.message);}finally{if(!disposed)el('requirement-file').value='';}});
   paintRequirements();
 
-  return {refresh:paintRequirements,close:()=>{menu.close?.();clearDrag();closeRequirementEditor();if(kind==='planning')rootEl('planning-template').close?.();},clearDrag};
+  return {refresh:paintRequirements,close:()=>{menu.close?.();clearDrag();closeRequirementEditor();if(kind==='planning')closeLibraryDialog(rootEl('planning-template'));},clearDrag};
   }
   const requirementLibrary=mountLibrary('requirement','requirements','最高指令');
   const planningLibrary=mountLibrary('planning','plannings','导演规划');
@@ -498,8 +518,14 @@ const StoryPlannerCore = (() => {
     }catch(e){apiSay(e.message);}finally{resources.clear(timer);if(probeRun===controller)probeRun=null;if(!disposed){button.disabled=false;button.textContent=label;}}
   }
   el('models').onclick=resources.guard(()=>probe('models'));el('test').onclick=resources.guard(()=>probe('test'));
-  function cancel(reason){if(run)run.controller.abort();say(reason);}
-  function guard(r){if(disposed||r.controller.signal.aborted||r.scope!==scope()||r.fingerprint!==fingerprint()||generation!==r.generation||generation?.stopped||r.generation.scope!==scope()||(r.presetStamp&&JSON.stringify(getPreset('in_use'))!==r.presetStamp))throw Error('规划已取消，或聊天/消息/分支发生变化；未发送主请求。');}
+  function cancel(reason){
+    if(run){
+      if(run.planning&&!run.sent&&!run.cancelled&&!disposed)onProgress?.('cancelled','本轮规划已取消');
+      run.cancelled=true;run.controller.abort();
+    }
+    say(reason);
+  }
+  function guard(r){if(disposed||r.controller.signal.aborted||r.scope!==scope()||!chatMatches(r.chatSnapshot)||generation!==r.generation||generation?.stopped||r.generation.scope!==scope()||(r.presetStamp&&JSON.stringify(getPreset('in_use'))!==r.presetStamp))throw Error('规划已取消，或聊天/消息/分支发生变化；未发送主请求。');}
   async function callExpert(messages,r,nativeFetch){
     const d=r.diagnostic;const body={model:config.model,messages,max_tokens:config.maxTokens,stream:false};d.expertRequest=body;debug();
     const response=await resources.wait(nativeFetch.call(host,config.base+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json',...(secret?{Authorization:'Bearer '+secret}:{})},body:JSON.stringify(body),signal:r.controller.signal,credentials:'omit'}),"规划已取消或超时；未发送主请求。");
@@ -517,10 +543,10 @@ const StoryPlannerCore = (() => {
     if(disposed||!enabled||url.origin!==host.location.origin||url.pathname!=='/api/backends/chat-completions/generate'||typeof init?.body!=='string')return nativeFetch.call(host,input,init);
     // Other generation types retain their original flow; only marked normal/swipe requests enter planning.
     if(generation&&!['normal','swipe','regenerate',undefined].includes(generation.type))return nativeFetch.call(host,input,init);
-    const record=[...records].reverse().find(x=>!x.used&&JSON.stringify(x.payload)===sourceBody);
+    const record=records.findLast(x=>!x.used&&JSON.stringify(x.payload)===sourceBody);
     if(!record||record.generation!==generation||generation?.stopped)throw Error('故事导演：缺少有效的本轮请求标记，请重新发送。');
     record.used=true;if(run)throw Error('故事导演仍在工作，已阻止重复请求。');
-    const r={controller:resources.trackController(new host.AbortController()),scope:scope(),fingerprint:fingerprint(),generation,presetStamp:record.presetStamp};run=r;paint();
+    const r={controller:resources.trackController(new host.AbortController()),scope:scope(),chatSnapshot:captureChat(),generation,presetStamp:record.presetStamp};run=r;paint();
     const abort=()=>r.controller.abort();init.signal?.addEventListener('abort',abort,{once:true});if(init.signal?.aborted)abort();
     let timer;diagnostic={status:'规划中',generationType:generation.type||'normal',preset:record.presetName,planningRules:record.planningRules};r.diagnostic=diagnostic;debug();say('故事导演正在规划；主请求尚未发送。');
     try{
@@ -530,32 +556,39 @@ const StoryPlannerCore = (() => {
       if(!originalMessages.some(m=>m.content.includes('<story_driver>')))throw Error('实际请求没有story_driver，无法确认预设适配。');
       const filtered=StoryPlannerCore.filterExpertContext(originalMessages,record.expertFilter,record.directorPrompt);const messages=filtered.messages;r.diagnostic.contextFilter={placement:filtered.placement,activePlanning:record.plannings.filter(e=>e.enabled).map(e=>e.name),activeHighestInstructions:record.requirements.filter(e=>e.enabled).map(e=>e.name),removed:filtered.removed,excludedVariables:filtered.excludedVariables,beforeCharacters:JSON.stringify(originalMessages).length,afterCharacters:JSON.stringify(messages).length};
       const expert=StoryPlannerCore.expertMessages(messages);
-      const interrupted=new Promise((_,reject)=>{r.controller.signal.addEventListener('abort',()=>reject(Error('规划已取消或超时；未发送主请求。')),{once:true});timer=resources.timeout(abort,config.timeout*1000);});
+      const interrupted=new Promise((_,reject)=>{r.controller.signal.addEventListener('abort',()=>reject(Error('规划已取消或超时；未发送主请求。')),{once:true});timer=resources.timeout(()=>{r.timedOut=true;abort();},config.timeout*1000);});
+      r.planning=true;onProgress?.('waiting','正在规划 · 等待副 API');
       const report=await Promise.race([callExpert(expert,r,nativeFetch),interrupted]);guard(r);
       const handoff=StoryPlannerCore.writerMessages(payload.messages,report,record.expertFilter.find(f=>f.sourceId==='20f5f445-aba9-42aa-a1f4-927e28384f84')?.text,record.writerPrompt,record.player);const writer=handoff.messages;r.diagnostic.handoff={scene:handoff.scene,driverIndex:handoff.driverIndex,playerIndex:handoff.playerIndex};
       r.diagnostic.report=report;r.diagnostic.writerMessages=writer;r.diagnostic.contextCharacters=JSON.stringify(messages).length;r.diagnostic.writerCharacters=JSON.stringify(writer).length;
       r.diagnostic.status='规划完成，正在发送主API';debug();say('规划完成，主API开始生成完整回复。');
       resources.clear(timer);timer=null;
       // Keep every transport/model/stream setting from Tavern, changing only this request's messages.
-      r.sent=true;const response=await resources.wait(nativeFetch.call(host,input,{...init,signal:r.controller.signal,body:JSON.stringify({...payload,messages:writer})}),"规划已取消或超时；未发送主请求。");
+      r.sent=true;onProgress?.('done','规划完成 · 交给主 API');
+      const response=await resources.wait(nativeFetch.call(host,input,{...init,signal:r.controller.signal,body:JSON.stringify({...payload,messages:writer})}),"规划已取消或超时；未发送主请求。");
       r.diagnostic.status=response.ok?'主API已响应，完整回复由酒馆继续接收':'主API返回HTTP '+response.status;debug();return response;
-    }catch(e){r.diagnostic.status=e.message||'故事规划失败';if(diagnostic===r.diagnostic){debug();say(r.diagnostic.status+' 已解除等待；可重试，或关闭故事导演后继续。');}throw e;}
+    }catch(e){
+      if(r.planning&&!r.sent&&!r.cancelled){
+        const cancelled=r.controller.signal.aborted&&!r.timedOut;
+        onProgress?.(cancelled?'cancelled':'failed',cancelled?'本轮规划已取消':r.timedOut?'规划超时':'规划失败 · 主 API 未发送');
+      }
+      r.diagnostic.status=e.message||'故事规划失败';if(diagnostic===r.diagnostic){debug();say(r.diagnostic.status+' 已解除等待；可重试，或关闭故事导演后继续。');}throw e;}
     finally{if(timer)resources.clear(timer);init.signal?.removeEventListener('abort',abort);if(run===r)run=null;paint();}
   }
   const subs=[];function on(name,fn){const key=ctx().eventTypes[name];if(key){const subscription=eventOn(key,resources.guard(fn));let stopped=false;const stop=()=>{if(!stopped){stopped=true;subscription.stop();}};subs.push({stop});resources.add(stop);}}
-  function block(e){if(e.type==='keydown'&&(e.isComposing||e.keyCode===229))return;if(e.type==='keydown'&&e.key==='Escape'&&(el('requirement-editor').open||el('planning-editor').open||el('writer-editor').open)){e.preventDefault();e.stopImmediatePropagation();closeRequirementEditor();return;}if(e.type==='keydown'&&e.key==='Escape'&&el('dialog').open){e.preventDefault();e.stopImmediatePropagation();closeDebug();return;}if(!run||run.controller.signal.aborted||run.scope!==scope())return;const t=e.target;const hit=e.type==='click'&&t?.closest?.('#send_but')||e.type==='submit'&&t?.matches?.('#send_form')||e.type==='keydown'&&t?.closest?.('#send_textarea')&&e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&e.keyCode!==229;if(hit){e.preventDefault();e.stopImmediatePropagation();say('故事导演正在工作，请等待或取消本轮规划。');}}
+  function block(e){if(e.type==='keydown'&&(e.isComposing||e.keyCode===229))return;if(e.type==='keydown'&&e.key==='Escape'&&!editorPresentation&&(el('requirement-editor').open||el('planning-editor').open||el('writer-editor').open)){e.preventDefault();e.stopImmediatePropagation();closeRequirementEditor();return;}if(e.type==='keydown'&&e.key==='Escape'&&el('dialog').open){e.preventDefault();e.stopImmediatePropagation();closeDebug();return;}if(!run||run.controller.signal.aborted||run.scope!==scope())return;const t=e.target;const hit=e.type==='click'&&t?.closest?.('#send_but')||e.type==='submit'&&t?.matches?.('#send_form')||e.type==='keydown'&&t?.closest?.('#send_textarea')&&e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&e.keyCode!==229;if(hit){e.preventDefault();e.stopImmediatePropagation();say('故事导演正在工作，请等待或取消本轮规划。');}}
   for(const event of ['OAI_PRESET_CHANGED_AFTER','PRESET_CHANGED','CHAT_CHANGED'])on(event,inspectRules);
   on('GENERATION_STARTED',(type,options,dry)=>{if(dry)return;if(run)cancel('新的生成取代了旧规划。');generation={type,scope:scope(),stopped:false};records=[];});
   on('CHAT_COMPLETION_SETTINGS_READY',payload=>{
     if(!enabled||!generation)return;let contract='',error='',presetName='',presetStamp='',planningRules=null,expertFilter=[],writerPrompt='',directorPrompt='';
     try{assertSetup();writerPrompt=StoryPlannerCore.writerPrompt(config.writers,s=>ctx().substituteParams(s));presetName=getLoadedPresetName();const preset=getPreset('in_use');presetStamp=JSON.stringify(preset);contract=StoryPlannerCore.contractFromPreset(preset,s=>ctx().substituteParams(s));planningRules=StoryPlannerCore.planningFromPreset(preset,s=>ctx().substituteParams(s));expertFilter=StoryPlannerCore.expertFilterFromPreset(preset,s=>ctx().substituteParams(s));directorPrompt=StoryPlannerCore.requirementText(config.requirements,planningRules,config.plannings,s=>ctx().substituteParams(s));renderRules(planningRules.variables);}catch(e){error=e.message;}
-    const player=[...ctx().chat].reverse().find(m=>m.is_user)?.mes||'';
+    const player=ctx().chat.findLast(m=>m.is_user)?.mes||'';
     records.push({payload,generation,contract,error,presetName,presetStamp,planningRules,expertFilter,requirements:JSON.parse(JSON.stringify(config.requirements)),plannings:JSON.parse(JSON.stringify(config.plannings)),writerPrompt,directorPrompt,player,used:false});records=records.slice(-4);
   });
   on('GENERATION_STOPPED',()=>{if(generation)generation.stopped=true;cancel('本轮生成已停止。');});
   on('GENERATION_ENDED',()=>{generation=null;records=[];});
-  on('CHAT_CHANGED',()=>{cancel('聊天已切换，旧规划已取消。');generation=null;records=[];diagnostic=null;debug();});
-  for(const name of ['MESSAGE_SWIPED','MESSAGE_EDITED','MESSAGE_DELETED','MESSAGE_UPDATED'])on(name,()=>{if(run&&fingerprint()!==run.fingerprint)cancel('消息或候选已变化，旧规划已取消。');});
+  on('CHAT_CHANGED',()=>{cancel('聊天已切换，旧规划已取消。');onProgress?.();generation=null;records=[];diagnostic=null;debug();});
+  for(const name of ['MESSAGE_SWIPED','MESSAGE_EDITED','MESSAGE_DELETED','MESSAGE_UPDATED'])on(name,()=>{if(run&&!chatMatches(run.chatSnapshot))cancel('消息或候选已变化，旧规划已取消。');});
   for(const e of ['click','keydown','submit']){host.addEventListener(e,block,true);resources.add(()=>host.removeEventListener(e,block,true));}
   function cleanup(){if(disposed)return;disposed=true;probeRun?.abort();cancel('脚本已关闭。');subs.forEach(s=>s.stop());for(const e of ['click','keydown','submit'])host.removeEventListener(e,block,true);closeDebug();closeRequirementEditor();clearDrag();box.remove();directorRoot.remove();if(host[ID]?.dispatch===dispatch)delete host[ID];}
   async function directorFetch(input,init){return dispatch(input,init,originalFetch,init?.body);}

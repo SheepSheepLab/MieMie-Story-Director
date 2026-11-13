@@ -8,7 +8,7 @@ const edit=(r)=>r.children[2].click();
 const more=(r)=>r.children[3].click();
 const currentMenu=f=>[...f.doc.querySelectorAll('.sp-entry-menu')].find(m=>m.open);
 
-test('Official header has formal identity, unchanged original PNG and 0.4.0',async t=>{const{f}=await boot(t);const h=f.doc.querySelector('.director-heading');assert.equal(h.querySelector('strong').textContent,'咩咩故事导演 0.4.0');assert.equal(h.querySelector('small').textContent,'请打开单人角色聊天');assert.equal(h.querySelector('img').src,approvedIcon);assert.equal(h.querySelector('img').dataset.toolIcon,'story-director');});
+test('Official header has formal identity, unchanged original PNG and 1.0.0',async t=>{const{f}=await boot(t);const h=f.doc.querySelector('.director-heading');assert.equal(h.querySelector('strong').textContent,'咩咩故事导演 1.0.0');assert.equal(h.querySelector('small').textContent,'请打开单人角色聊天');assert.equal(h.querySelector('img').src,approvedIcon);assert.equal(h.querySelector('img').dataset.toolIcon,'story-director');});
 test('Official mount removes all superseded historical visual overrides',async t=>{const{f}=await boot(t);const styles=f.doc.querySelectorAll('#meeme-story-director style');assert.equal(styles.length,1);assert.equal(styles[0].textContent,officialStyles);assert.equal(f.doc.querySelector('details'),null);});
 test('Persistent toggle and runtime footer remain outside page navigation',async t=>{const{f}=await boot(t);assert.ok(f.el('toggle').closest('.md-director-controls'));for(const key of ['status','cancel'])assert.ok(f.el(key).closest('.md-director-footer'));assert.equal(f.el('open-debug'),null);assert.equal(f.el('toggle').closest('[role=tabpanel]'),null);const back=f.doc.querySelector('[data-director-close]');assert.ok(back.closest('.md-director-footer'));assert.equal(back.textContent,'返回');assert.deepEqual([...f.doc.querySelectorAll('.director-heading button')].map(b=>b.getAttribute('aria-label')),['悬浮球设置']);});
 test('Disabled and enabled toggle states expose aria and visible status',async t=>{const{f}=await boot(t);assert.equal(f.el('toggle').getAttribute('aria-pressed'),'false');f.enable();await flush();assert.equal(f.el('toggle').getAttribute('aria-pressed'),'true');assert.equal(f.doc.querySelector('.md-director-state'),null);assert.equal(f.el('toggle').textContent,'故事导演：开启');f.el('toggle').click();await flush();assert.equal(f.el('toggle').getAttribute('aria-pressed'),'false');});
@@ -43,10 +43,31 @@ test('Official native launcher keeps approved icon and shared floating presentat
 test('Hub handoff keeps library data/config/enabled/tab and official UI across remount',async t=>{const{f,s}=await boot(t);f.enable();f.el('writer-add').click();f.el('writer-content').value='交接提示';f.el('writer-content').oninput();f.el('writer-close').click();f.el('tab-writer').click();const h=hubFixture(f);h.start();await s.settled();assert.equal(s.mode,'hub');assert.equal(f.doc.querySelector('[data-miemie-director-native]'),null);await h.openHoneycomb();await flush();assert.equal(f.el('tab-writer').getAttribute('aria-selected'),'true');assert.equal(f.el('toggle').dataset.on,'true');assert.ok(f.el('writers').textContent.includes('新建主 API'));assert.equal(f.stored.writers[0].content,'交接提示');assert.equal(f.el('key').value,'page-secret');assert.equal(f.doc.querySelectorAll('[data-director-theme]').length,1);await h.stop();await s.settled();assert.equal(s.mode,'standalone');assert.equal(f.el('toggle').dataset.on,'true');assert.equal(f.doc.querySelectorAll('[data-director-window]').length,1);assert.equal(f.count.peak,1);});
 test('Hub Honeycomb and shortcut use one official panel without taking Hub motion ownership',async t=>{const f=officialFixture(t),h=hubFixture(f);h.start();const s=f.make();await s.ready;await h.openHoneycomb();assert.equal(h.motion.honeycomb,1);assert.equal(h.motion.native,0);h.preference(true);assert.equal(f.doc.querySelectorAll('[data-miemie-director-native]').length,1);assert.equal(f.doc.querySelector('[data-miemie-director-native] img').src,approvedIcon);f.doc.querySelector('[data-miemie-director-native]').click();await flush();assert.ok(h.motion.native>0);await s.dispose();await h.stop();});
 test('Unmount revokes old controls, observer and roots; fresh remount restores official UI',async t=>{const{f,s}=await boot(t);const toggle=f.el('toggle');await s.dispose();assert.equal(f.doc.querySelector('#meeme-story-director'),null);toggle.click();assert.equal(f.doc.querySelector('#meeme-story-director'),null);const again=f.make();await again.ready;assert.equal(f.doc.querySelectorAll('[data-director-theme]').length,1);await again.dispose();assert.equal(f.host.fetch,f.nativeFetch);});
-test('Shared styles provide focus, individual jelly, reduced motion, mobile and keyboard viewport rules',()=>{for(const token of ['focus-visible','prefers-reduced-motion:reduce','@media(max-width:420px)','--md-viewport-height','safe-area','md-jelly','md-popover-in','resize:vertical'])assert.ok(officialStyles.includes(token));assert.match(officialStyles,/\.sp-entry-menu::backdrop\{background:transparent;backdrop-filter:none/);assert.match(officialStyles,/height:227px/);assert.match(officialStyles,/480px/);assert.match(officialStyles,/min-width:44px;min-height:44px/);});
+test('Shared styles provide focus, individual jelly, reduced motion, mobile and keyboard viewport rules',()=>{for(const token of ['focus-visible','prefers-reduced-motion:reduce','@media(max-width:420px)','--md-viewport-height','safe-area','md-jelly','md-popover-in','resize:vertical'])assert.ok(officialStyles.includes(token));assert.match(officialStyles,/\.sp-entry-menu::backdrop\{background:transparent;backdrop-filter:none/);assert.match(officialStyles,/\.md-dialog\{[^}]*width:94%/);assert.match(officialStyles,/\.md-editor\{height:94%\}/);assert.match(officialStyles,/\.md-editor-content textarea\{[^}]*resize:none/);assert.match(officialStyles,/min-width:44px;min-height:44px/);});
 test('Popover Escape consumes only owned menu and leaves presentation open',async t=>{const{f}=await boot(t);await f.last.instance.open();more(row(f));await flush();const menu=currentMenu(f);f.doc.dispatchEvent(new f.host.KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));assert.equal(menu.open,false);assert.equal(f.doc.querySelector('[data-director-window]').hidden,false);});
 test('Editor restores focus to a replacement row pencil after autosave repaint',async t=>{const{f}=await boot(t);await f.last.instance.open();edit(row(f));f.el('requirement-name').value='重新命名';f.el('requirement-name').oninput();await flush();f.el('requirement-close').click();f.el('requirement-editor').dispatchEvent(new f.host.Event('close'));assert.equal(f.doc.activeElement,row(f).children[2]);});
-test('Visual viewport keyboard sizing and offset are scoped and cleaned up',async t=>{const f=officialFixture(t),viewport=new f.host.EventTarget();Object.assign(viewport,{width:390,height:420,offsetTop:140,offsetLeft:0});Object.defineProperty(f.host,'visualViewport',{value:viewport});const s=f.make();await s.ready;const root=f.doc.querySelector('#meeme-story-director');assert.equal(root.style.getPropertyValue('--md-viewport-height'),'420px');assert.equal(root.style.getPropertyValue('--md-viewport-top'),'140px');viewport.height=360;viewport.offsetTop=160;viewport.dispatchEvent(new f.host.Event('resize'));assert.equal(root.style.getPropertyValue('--md-viewport-height'),'360px');await s.dispose();viewport.height=500;viewport.dispatchEvent(new f.host.Event('resize'));assert.equal(root.style.getPropertyValue('--md-viewport-height'),'360px');});
+test('Planning template and editor share a panel-contained layer and Escape restores the library',async t=>{
+  const {f}=await boot(t);
+  await f.last.instance.open();
+  const window=f.doc.querySelector('[data-director-window]'),workspace=window.querySelector('.sp-workspace');
+  const add=f.el('planning-add'),template=f.el('planning-template'),editor=f.el('planning-editor');
+  add.click();
+  const layer=template.parentElement;
+  assert.equal(editor.parentElement,layer);
+  assert.ok(window.contains(layer));
+  assert.equal(layer.hidden,false);
+  assert.ok(workspace.hasAttribute('inert'));
+  f.el('planning-single').click();
+  assert.equal(template.open,false);
+  assert.equal(editor.open,true);
+  f.el('planning-content').dispatchEvent(new f.host.KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));
+  assert.equal(editor.open,false);
+  assert.equal(layer.hidden,true);
+  assert.ok(!workspace.hasAttribute('inert'));
+  assert.equal(window.hidden,false);
+  assert.equal(f.doc.activeElement,add);
+});
+test('Visual viewport sizes the containing window and stops on disposal',async t=>{const f=officialFixture(t),viewport=new f.host.EventTarget();Object.assign(viewport,{width:390,height:420,offsetTop:140,offsetLeft:0});Object.defineProperty(f.host,'visualViewport',{value:viewport});const s=f.make();await s.ready;const root=f.doc.querySelector('#meeme-story-director');assert.equal(root.style.getPropertyValue('--md-viewport-height'),'420px');viewport.height=360;viewport.offsetTop=160;viewport.dispatchEvent(new f.host.Event('resize'));assert.equal(root.style.getPropertyValue('--md-viewport-height'),'360px');await s.dispose();viewport.height=500;viewport.dispatchEvent(new f.host.Event('resize'));assert.equal(root.style.getPropertyValue('--md-viewport-height'),'360px');});
 test('Official presentation failure rolls back its owned UI and original hook',async t=>{const f=officialFixture(t);Object.defineProperty(f.host,'MutationObserver',{value:class{constructor(){throw Error('fixture presentation error');}}});const s=f.make();await s.ready;assert.equal(s.mode,'error');assert.equal(f.doc.querySelector('#meeme-story-director'),null);assert.equal(f.host.fetch,f.nativeFetch);assert.equal(f.host.__meemeStoryPlanner,undefined);});
 test('Official library export buttons preserve all and single exchange bodies',async t=>{const{f}=await boot(t);const blobs=[];f.host.Blob=Blob;f.host.URL.createObjectURL=blob=>{blobs.push(blob);return 'blob:fixture';};f.host.URL.revokeObjectURL=()=>{};f.host.HTMLAnchorElement.prototype.click=function(){};f.el('requirement-export').click();let data=JSON.parse(await blobs[0].text());assert.equal(data.type,'meeme-director-requirements');assert.equal(data.version,1);assert.equal(data.library,'requirement');assert.equal(data.entries.length,2);more(row(f));await flush();currentMenu(f).children[0].click();data=JSON.parse(await blobs[1].text());assert.equal(data.entries.length,1);assert.equal(data.entries[0].name,row(f).children[1].textContent);assert.deepEqual(Object.keys(data.entries[0]),['name','content','enabled']);});
 test('Without browser top-layer support the native panel reserves only overlapped card controls without moving orb',async t=>{const f=officialFixture(t);delete f.host.HTMLElement.prototype.showPopover;const s=f.make();await s.ready;f.host.innerWidth=390;const orb=f.doc.querySelector('[data-miemie-director-native]'),header=f.el('planning-add').closest('header');orb.getBoundingClientRect=()=>({left:310,right:374,top:480,bottom:544,width:64,height:64});header.getBoundingClientRect=()=>({left:80,right:360,top:500,bottom:550,width:280,height:50});const position=orb.style.cssText;await f.last.instance.open();await flush();assert.equal(header.style.getPropertyValue('--md-orb-clearance'),'54px');assert.equal(orb.style.cssText,position);assert.equal(f.el('requirement-add').closest('header').style.getPropertyValue('--md-orb-clearance'),'');header.getBoundingClientRect=()=>({left:80,right:360,top:200,bottom:250,width:280,height:50});f.doc.querySelector('[data-director-window]').style.width='370px';await flush();assert.equal(header.style.getPropertyValue('--md-orb-clearance'),'');});
@@ -54,3 +75,46 @@ test('Mouse pointer handoff preserves active HTML drag; touch cancellation still
 // jsdom lacks native pointer handler dispatch; bridge it only in this fixture.
 b.children[1].addEventListener('pointercancel',b.children[1].onpointercancel);
 a.ondragstart({dataTransfer:{setData(){}}});const cancel=type=>{const e=new f.host.Event('pointercancel',{bubbles:true});Object.defineProperty(e,'pointerType',{value:type});b.children[1].dispatchEvent(e);};cancel('mouse');assert.equal(a.dataset.dragging,'true');b.ondrop({preventDefault(){}});await flush();assert.equal(f.el('requirements').children[1].dataset.entryId,a.dataset.entryId);const c=row(f);c.children[1].addEventListener('pointercancel',c.children[1].onpointercancel);c.ondragstart({dataTransfer:{setData(){}}});const e=new f.host.Event('pointercancel',{bubbles:true});Object.defineProperty(e,'pointerType',{value:'touch'});c.children[1].dispatchEvent(e);assert.equal(c.dataset.dragging,undefined);});
+
+test('planning progress follows the expert request through handoff while the panel is closed',async t=>{
+  const f=officialFixture(t);
+  f.doc.body.innerHTML='<div id="form_sheld"><div id="send_form"></div></div>';
+  const s=f.make();await s.ready;f.enable();
+  const progress=f.doc.querySelector('[data-mm-request-progress]');
+  assert.equal(progress.nextElementSibling.id,'send_form');
+  assert.equal(progress.hidden,true);
+  const reply=Promise.withResolvers();f.setReply(()=>reply.promise);
+  const run=f.dispatch();
+  assert.equal(f.doc.querySelector('[data-director-window]').hidden,true);
+  assert.equal(progress.dataset.mmProgressState,'waiting');
+  assert.equal(f.nativeCalls.length,1);
+  reply.resolve({ok:true,status:200,text:async()=>JSON.stringify({choices:[{message:{content:'<story_scene>在教室内等待玩家回应。</story_scene>'}}]})});
+  const main=await run;
+  assert.equal(main.body,'original-stream');
+  assert.equal(progress.dataset.mmProgressState,'done');
+  assert.match(progress.textContent,/规划完成 · 交给主 API/);
+  assert.equal(f.doc.querySelector('.md-director-footer .mm-request-progress').dataset.mmProgressState,'done');
+  assert.equal(f.nativeCalls.length,2);
+  await s.dispose();assert.equal(progress.isConnected,false);
+});
+
+test('stopping or failing the expert request never shows a successful main handoff',async t=>{
+  const f=officialFixture(t),s=f.make();await s.ready;f.enable();
+  const progress=f.doc.querySelector('[data-mm-request-progress]');
+  const reply=Promise.withResolvers();f.setReply(()=>reply.promise);
+  const run=f.dispatch(), rejected=assert.rejects(run,/取消|超时/);
+  f.el('cancel').click();await rejected;
+  assert.equal(progress.dataset.mmProgressState,'cancelled');
+  reply.resolve({ok:true,status:200,text:async()=>JSON.stringify({choices:[{message:{content:'<story_scene>迟到的报告。</story_scene>'}}]})});
+  await flush();
+  assert.equal(progress.dataset.mmProgressState,'cancelled');
+  assert.equal(f.nativeCalls.length,1);
+
+  f.setReply(async()=>({ok:false,status:503,text:async()=>''}));
+  await assert.rejects(f.dispatch(),/HTTP 503/);
+  assert.equal(progress.dataset.mmProgressState,'failed');
+  assert.match(progress.textContent,/主 API 未发送/);
+  assert.equal(f.nativeCalls.length,2);
+  f.context.chatId='other-chat';f.emit('CHAT_CHANGED');
+  assert.equal(progress.hidden,true);
+});

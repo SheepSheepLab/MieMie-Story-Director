@@ -3,7 +3,7 @@ import {mountDirectorRuntime} from './host/business-runtime.generated.js';
 import {DIRECTOR_IDENTITIES} from '../product-identity.js';
 
 const ownershipMarker='__MieMieStoryDirectorRuntime';
-export function createDirectorExtension(api,{host,helpers,assets={},presentation}) {
+export function createDirectorExtension(api,{host,helpers,assets={},presentation,editorPresentation}) {
   let tool=null,resources=null,deactivation=null;
   const instance={
     activate() {
@@ -16,9 +16,10 @@ export function createDirectorExtension(api,{host,helpers,assets={},presentation
       // Ownership is released last, after UI/events/fetch links have been revoked.
       resources.add(()=>{if(host[ownershipMarker]===instance)delete host[ownershipMarker];});
       try {
-        tool=mountDirectorRuntime({host,helpers,resources,api});
+        let view;
+        tool=mountDirectorRuntime({host,helpers,resources,api,editorPresentation,onProgress:(state,text)=>view?.updateProgress?.(state,text)});
         if(api.attachPanel(tool.panel,{icon:assets.icon})===false)throw Error('故事导演面板挂载失败。');
-        if(presentation){const view=presentation({panel:tool.panel,host,resources,icon:assets.icon,styles:assets.styles});if(view?.dispose)resources.add(()=>view.dispose());}
+        if(presentation){view=presentation({panel:tool.panel,host,resources,icon:assets.icon,styles:assets.styles});if(view?.dispose)resources.add(()=>view.dispose());}
         return true;
       } catch(error) {void instance.deactivate()?.catch(()=>{});throw error;}
     },
