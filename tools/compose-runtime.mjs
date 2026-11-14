@@ -34,6 +34,43 @@ export async function composeRuntime() {
     else dialog.close?.();
   }
   const rootEl=el;`);
+  // Keep the historical source byte-identical; adapt the current entry menu here.
+  once(`  const menu=doc.createElement('div');menu.className='sp-entry-menu';menu.setAttribute('popover','auto');menu.setAttribute('aria-label',label+'条目操作');box.appendChild(menu);
+  menu.close=()=>{if(menu.matches?.(':popover-open'))menu.hidePopover();menu.open=false;menuInvoker=null;};
+  function openMenu(button,exp,remove){
+    menu.replaceChildren();for(const item of [exp,remove])menu.appendChild(item);
+    menu.showPopover();menu.open=true;menuInvoker=button;const anchor=button.getBoundingClientRect(),size=menu.getBoundingClientRect();
+`, `  const popover=doc.createElement('div');
+  const nativePopover=typeof popover.showPopover==='function';
+  const menu=nativePopover?popover:doc.createElement('dialog');
+  menu.className='sp-entry-menu';
+  if(nativePopover)menu.setAttribute('popover','auto');
+  else menu.dataset.menuFallback='';
+  menu.setAttribute('aria-label',label+'条目操作');box.appendChild(menu);
+  const closeDialog=nativePopover?null:menu.close.bind(menu);
+  menu.isOpen=()=>nativePopover?menu.matches(':popover-open'):menu.open;
+  menu.close=()=>{
+    if(menu.isOpen()){
+      if(nativePopover)menu.hidePopover();
+      else closeDialog();
+    }
+    if(nativePopover)menu.open=false;
+    menuInvoker=null;
+  };
+  if(!nativePopover){
+    menu.oncancel=event=>{event.preventDefault();menu.close();};
+    menu.onclick=event=>{if(event.target===menu)menu.close();};
+  }
+  function openMenu(button,exp,remove){
+    menu.replaceChildren();for(const item of [exp,remove])menu.appendChild(item);
+    if(nativePopover){menu.showPopover();menu.open=true;}
+    else menu.showModal();
+    menuInvoker=button;
+    const anchor=button.getBoundingClientRect(),size=menu.getBoundingClientRect();
+`);
+  once(`      const more=doc.createElement('button');more.type='button';more.textContent='···';more.title='更多操作';more.setAttribute('aria-label','更多操作 '+entry.name);let dismissOnClick=false;more.onpointerdown=()=>{dismissOnClick=menuInvoker===more&&menu.matches(':popover-open');};more.onclick=()=>{const dismiss=dismissOnClick||(menuInvoker===more&&menu.matches(':popover-open'));dismissOnClick=false;if(dismiss)menu.close();else openMenu(more,exp,remove);};more.onpointercancel=()=>{dismissOnClick=false;};
+`, `      const more=doc.createElement('button');more.type='button';more.textContent='···';more.title='更多操作';more.setAttribute('aria-label','更多操作 '+entry.name);let dismissOnClick=false;more.onpointerdown=()=>{dismissOnClick=menuInvoker===more&&menu.isOpen();};more.onclick=()=>{const dismiss=dismissOnClick||(menuInvoker===more&&menu.isOpen());dismissOnClick=false;if(dismiss)menu.close();else openMenu(more,exp,remove);};more.onpointercancel=()=>{dismissOnClick=false;};
+`);
   once("el('requirement-editor').close?.();", "closeLibraryDialog(el('requirement-editor'));");
   once("function selectRequirement(id){", "function selectRequirement(id,opener=el('requirement-add')){");
   once("if(!el('requirement-editor').open)el('requirement-editor').showModal();", "showLibraryDialog(el('requirement-editor'),opener,id);");

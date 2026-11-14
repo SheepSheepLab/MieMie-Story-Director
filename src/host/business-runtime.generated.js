@@ -410,11 +410,33 @@ const StoryPlannerCore = (() => {
   function mountLibrary(kind,key,label){
   const el=n=>rootEl(kind==='requirement'?n:n.replace('requirements',kind+'s').replace('requirement',kind));
   let selectedRequirement=null,draggedRequirement=null,touchDrag=null,menuInvoker=null;
-  const menu=doc.createElement('div');menu.className='sp-entry-menu';menu.setAttribute('popover','auto');menu.setAttribute('aria-label',label+'条目操作');box.appendChild(menu);
-  menu.close=()=>{if(menu.matches?.(':popover-open'))menu.hidePopover();menu.open=false;menuInvoker=null;};
+  const popover=doc.createElement('div');
+  const nativePopover=typeof popover.showPopover==='function';
+  const menu=nativePopover?popover:doc.createElement('dialog');
+  menu.className='sp-entry-menu';
+  if(nativePopover)menu.setAttribute('popover','auto');
+  else menu.dataset.menuFallback='';
+  menu.setAttribute('aria-label',label+'条目操作');box.appendChild(menu);
+  const closeDialog=nativePopover?null:menu.close.bind(menu);
+  menu.isOpen=()=>nativePopover?menu.matches(':popover-open'):menu.open;
+  menu.close=()=>{
+    if(menu.isOpen()){
+      if(nativePopover)menu.hidePopover();
+      else closeDialog();
+    }
+    if(nativePopover)menu.open=false;
+    menuInvoker=null;
+  };
+  if(!nativePopover){
+    menu.oncancel=resources.guard(event=>{event.preventDefault();menu.close();});
+    menu.onclick=resources.guard(event=>{if(event.target===menu)menu.close();});
+  }
   function openMenu(button,exp,remove){
     menu.replaceChildren();for(const item of [exp,remove])menu.appendChild(item);
-    menu.showPopover();menu.open=true;menuInvoker=button;const anchor=button.getBoundingClientRect(),size=menu.getBoundingClientRect();
+    if(nativePopover){menu.showPopover();menu.open=true;}
+    else menu.showModal();
+    menuInvoker=button;
+    const anchor=button.getBoundingClientRect(),size=menu.getBoundingClientRect();
     const width=host.innerWidth||doc.documentElement.clientWidth,height=host.innerHeight||doc.documentElement.clientHeight;
     menu.style.left=Math.max(8,Math.min(anchor.right-size.width,width-size.width-8))+'px';
     menu.style.transformOrigin=anchor.bottom+size.height+8>height?'bottom right':'top right';
@@ -453,7 +475,7 @@ const StoryPlannerCore = (() => {
       const edit=doc.createElement('button');edit.type='button';edit.textContent='✎';edit.title='编辑';edit.setAttribute('aria-label','编辑 '+entry.name);edit.onclick=resources.guard(()=>selectRequirement(entry.id,edit));
       const exp=doc.createElement('button');exp.type='button';exp.textContent='↥ 导出';exp.title='导出此条目';exp.setAttribute('aria-label','导出 '+entry.name);exp.onclick=resources.guard(()=>{menu.close();exportRequirements([entry]);});
       const remove=doc.createElement('button');remove.type='button';remove.textContent='× 删除';remove.title='删除此条目';remove.setAttribute('aria-label','删除 '+entry.name);remove.onclick=resources.guard(()=>{menu.close();config[key]=config[key].filter(e=>e.id!==entry.id);persistRequirements();if(selectedRequirement===entry.id)selectRequirement(null);else paintRequirements();});
-      const more=doc.createElement('button');more.type='button';more.textContent='···';more.title='更多操作';more.setAttribute('aria-label','更多操作 '+entry.name);let dismissOnClick=false;more.onpointerdown=resources.guard(()=>{dismissOnClick=menuInvoker===more&&menu.matches(':popover-open');});more.onclick=resources.guard(()=>{const dismiss=dismissOnClick||(menuInvoker===more&&menu.matches(':popover-open'));dismissOnClick=false;if(dismiss)menu.close();else openMenu(more,exp,remove);});more.onpointercancel=resources.guard(()=>{dismissOnClick=false;});
+      const more=doc.createElement('button');more.type='button';more.textContent='···';more.title='更多操作';more.setAttribute('aria-label','更多操作 '+entry.name);let dismissOnClick=false;more.onpointerdown=resources.guard(()=>{dismissOnClick=menuInvoker===more&&menu.isOpen();});more.onclick=resources.guard(()=>{const dismiss=dismissOnClick||(menuInvoker===more&&menu.isOpen());dismissOnClick=false;if(dismiss)menu.close();else openMenu(more,exp,remove);});more.onpointercancel=resources.guard(()=>{dismissOnClick=false;});
       for(const node of [check,name,edit,more])row.appendChild(node);list.appendChild(row);
     }
   }

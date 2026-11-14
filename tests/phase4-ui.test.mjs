@@ -8,7 +8,33 @@ const edit=(r)=>r.children[2].click();
 const more=(r)=>r.children[3].click();
 const currentMenu=f=>[...f.doc.querySelectorAll('.sp-entry-menu')].find(m=>m.open);
 
-test('Official header has formal identity, unchanged original PNG and 1.0.0',async t=>{const{f}=await boot(t);const h=f.doc.querySelector('.director-heading');assert.equal(h.querySelector('strong').textContent,'咩咩故事导演 1.0.0');assert.equal(h.querySelector('small').textContent,'请打开单人角色聊天');assert.equal(h.querySelector('img').src,approvedIcon);assert.equal(h.querySelector('img').dataset.toolIcon,'story-director');});
+test('Director opens and uses entry actions without the Popover API', async t => {
+  const f = officialFixture(t);
+  delete f.host.HTMLElement.prototype.showPopover;
+  delete f.host.HTMLElement.prototype.hidePopover;
+  const matches = f.host.HTMLElement.prototype.matches;
+  f.host.HTMLElement.prototype.matches = function(selector) {
+    assert.notEqual(selector, ':popover-open');
+    return matches.call(this, selector);
+  };
+  const source = f.make();
+  await source.ready;
+  await f.last.instance.open();
+  more(row(f));
+  await flush();
+  const menu = currentMenu(f);
+  assert.equal(menu.tagName, 'DIALOG');
+  assert.equal(menu.children.length, 2);
+  f.doc.dispatchEvent(new f.host.KeyboardEvent('keydown', { key:'Escape', bubbles:true, cancelable:true }));
+  assert.equal(menu.open, false);
+  assert.equal(f.doc.querySelector('[data-director-window]').hidden, false);
+  more(row(f));
+  menu.children[1].click();
+  assert.equal(menu.open, false);
+  assert.equal(f.stored.requirements.length, 1);
+});
+
+test('Official header has the current version and original PNG',async t=>{const{f}=await boot(t);const h=f.doc.querySelector('.director-heading');assert.equal(h.querySelector('strong').textContent,`咩咩故事导演 ${manifest.version}`);assert.equal(h.querySelector('small').textContent,'请打开单人角色聊天');assert.equal(h.querySelector('img').src,approvedIcon);assert.equal(h.querySelector('img').dataset.toolIcon,'story-director');});
 test('Official mount removes all superseded historical visual overrides',async t=>{const{f}=await boot(t);const styles=f.doc.querySelectorAll('#meeme-story-director style');assert.equal(styles.length,1);assert.equal(styles[0].textContent,officialStyles);assert.equal(f.doc.querySelector('details'),null);});
 test('Persistent toggle and runtime footer remain outside page navigation',async t=>{const{f}=await boot(t);assert.ok(f.el('toggle').closest('.md-director-controls'));for(const key of ['status','cancel'])assert.ok(f.el(key).closest('.md-director-footer'));assert.equal(f.el('open-debug'),null);assert.equal(f.el('toggle').closest('[role=tabpanel]'),null);const back=f.doc.querySelector('[data-director-close]');assert.ok(back.closest('.md-director-footer'));assert.equal(back.textContent,'返回');assert.deepEqual([...f.doc.querySelectorAll('.director-heading button')].map(b=>b.getAttribute('aria-label')),['悬浮球设置']);});
 test('Disabled and enabled toggle states expose aria and visible status',async t=>{const{f}=await boot(t);assert.equal(f.el('toggle').getAttribute('aria-pressed'),'false');f.enable();await flush();assert.equal(f.el('toggle').getAttribute('aria-pressed'),'true');assert.equal(f.doc.querySelector('.md-director-state'),null);assert.equal(f.el('toggle').textContent,'故事导演：开启');f.el('toggle').click();await flush();assert.equal(f.el('toggle').getAttribute('aria-pressed'),'false');});

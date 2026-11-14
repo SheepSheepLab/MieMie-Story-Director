@@ -139,6 +139,8 @@
 #meeme-story-director .sp-entry-menu{pointer-events:auto;inset:auto;position:fixed;margin:0;min-width:130px;padding:6px;max-width:calc(100vw - 16px);border:1px solid #3889d7;border-radius:12px;color:var(--md-text);background:#0c203e;box-shadow:0 12px 36px #0008;overflow:visible}
 #meeme-story-director .sp-entry-menu:popover-open{animation:md-popover-in .16s ease-out}
 #meeme-story-director .sp-entry-menu::backdrop{background:transparent;backdrop-filter:none;pointer-events:none}
+#meeme-story-director .sp-entry-menu[data-menu-fallback]::backdrop{pointer-events:auto}
+#meeme-story-director .sp-entry-menu[data-menu-fallback][open]{animation:md-popover-in .16s ease-out}
 #meeme-story-director .sp-entry-menu button{display:flex;width:100%;justify-content:flex-start;background:transparent;border-color:transparent;min-height:40px;padding:8px 10px}
 #meeme-story-director .sp-entry-menu button:last-child{color:#e4bdcc}
 #meeme-story-director :is(.sp-tab-content,[role=list],dialog,pre,[data-sp-status]){scrollbar-width:thin;scrollbar-color:#376392 transparent}

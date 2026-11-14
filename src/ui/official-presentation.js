@@ -177,7 +177,7 @@ export function mountOfficialDirectorPresentation({panel:window,host,resources,i
   // Escape dismisses a menu or editor before reaching the host's window-close shortcut.
   resources.listen(doc,'keydown',e=>{
     if(e.key!=='Escape'||e.isComposing||e.keyCode===229)return;
-    const menu=[...panel.querySelectorAll('.sp-entry-menu')].find(m=>m.matches(':popover-open'));
+    const menu=[...panel.querySelectorAll('.sp-entry-menu')].find(m=>m.isOpen());
     if(menu){e.preventDefault();e.stopImmediatePropagation();menu.close();}
     else if(activeEditor&&!window.hidden&&!window.inert&&(window.contains(e.target)||e.target===doc)){
       e.preventDefault();e.stopImmediatePropagation();if(!e.repeat)dismissEditor();
